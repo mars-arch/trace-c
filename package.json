@@ -3,17 +3,9 @@
   "version": "0.1.0",
   "private": false,
   "license": "MIT",
-  "author": "Mars Arch / Matthew Faucher",
+  "author": "Matthew Faucher",
   "type": "module",
-  "description": "TRACE-C — copula-calibrated temporal relational anomaly detection with rolling-conformal p-values, validated on real GB grid telemetry (NESO Open Data Licence; Supported by National Energy SO Open Data) with a frozen blind hold-out year",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/mars-arch/trace-c.git"
-  },
-  "bugs": {
-    "url": "https://github.com/mars-arch/trace-c/issues"
-  },
-  "homepage": "https://github.com/mars-arch/trace-c#readme",
+  "description": "TRACE-C \u2014 copula-calibrated temporal relational anomaly detection with rolling-conformal p-values, validated on real GB grid telemetry (NESO Open Data Licence; Supported by National Energy SO Open Data) with a frozen blind hold-out year",
   "keywords": [
     "anomaly-detection",
     "conformal-prediction",

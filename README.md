@@ -186,4 +186,4 @@ reports under `data/reports/`.
 
 Data © NESO, NESO Open Data Licence.
 Supported by National Energy SO Open Data.
-Code © Mars Arch / Matthew Faucher, MIT License (see `LICENSE`).
+Code © Matthew Faucher, MIT License (see `LICENSE`).
