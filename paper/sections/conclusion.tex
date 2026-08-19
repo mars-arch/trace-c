@@ -7,11 +7,14 @@ explicit selection path. Its rank $p$-values support ordering and selection;
 they are not estimated event probabilities or posterior confidence.
 
 The evidence is mixed and operationally informative. TRACE-C ranks Storm
-Atiyah first in 2019 development, but simple reconstruction ranks the short
-frequency event much better. The frozen 2020 run selects no alerts, while its
-ranked list contains plausible weather-associated and unlabelled extremes. The
-result exposes record saturation and the importance of sensor and aggregation
-choices rather than establishing nominal FDR.
+Atiyah first in 2019 development, but the channel ablation shows that this is
+a local-led window: copula-only ranks it 59th, and dropping the copula channel
+leaves it 2nd without a record alert. Simple reconstruction, and the temporal
+channel alone, rank the short frequency event much better than the fused
+detector. The frozen 2020 run selects no alerts, while its ranked list contains
+plausible weather-associated and unlabelled extremes. The result exposes record
+saturation, fusion trade-offs, and sensor/aggregation limits rather than
+establishing nominal FDR or copula discovery.
 
 Future work should pre-register a dependence-aware selector, evaluate it on a
 new untouched period, preserve sub-period frequency information, test missing

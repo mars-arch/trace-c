@@ -5,9 +5,8 @@ operational telemetry — with rolling-conformal p-values empirically checked
 on real data, disclosed null assumptions and selection
 rules, and a frozen blind hold-out year.
 
-> Detect when several individually ordinary readings form an unusual group
-> pattern, explain why, and hand evidence to a human — never a person-risk
-> score.
+> Rank unusual multi-stream windows, say which channel fired, and hand
+> evidence to a human — never a person-risk score.
 
 The deterministic TypeScript core has zero runtime dependencies. Data
 aggregation uses Python's standard library. The optional external-baseline
@@ -56,8 +55,8 @@ Fit: Jan–Apr 2019. Everything after is scored with strictly-prior references.
 | Result | Value |
 |---|---|
 | Empirical rank-score check (obs/reference) | p≤.05: 120/110 · p≤.02: 51/44 · p≤.01: 23/22 |
-| Storm Atiyah (2019-12-08) | **rank 1/2208, alerted**; event not used for tuning (both sensor sets) |
-| GB blackout (2019-08-09) | top ~6.5% w/ frequency stream; **not** separable at 30-min aggregation (a ~40-min transient) |
+| Storm Atiyah (2019-12-08) | **rank 1/2208, alerted**; lead channel **local**, not copula |
+| GB blackout (2019-08-09) | rank 143 fused; **temporal-only rank 40**; not separable at 30-min aggregation |
 | Record-rule alerts | 2 vs 1.19 expected under noise |
 
 **2020 (hold-out — frozen method, blind year that informed nothing):**
@@ -71,10 +70,11 @@ Fit: Jan–Apr 2019. Everything after is scored with strictly-prior references.
 | Top ranked blind windows | **#1 Storm Ellen (Aug 20, post-ranking interpretation)**; **#2 Jan20 unlabelled window**; **#5 Storm Alex (Oct 3, post-ranking interpretation)** |
 | Record rule | saturates on long horizons (0 vs 0.87 expected) — real finding; v3 selection rule to be validated on 2021 |
 
-**2019 channel ablation (development year, not a hold-out):** leave-one-out and
-single-channel reruns under the same windows and selection rule. The full
-detector's Atiyah `lead_channel` (local) was visible before this suite.
-`bun run eval:ablation` writes `data/reports/trace-c-ablation-2019.json`.
+**2019 channel ablation (development year, not a hold-out):** Atiyah's
+`lead_channel` was inspected before this suite. Copula-only ranks Atiyah **59**;
+drop copula leaves it **rank 2 without an alert**; local-only is rank 3; temporal-only
+ranks the blackout **40** vs fused 143. The copula-form channel is an extra
+Fisher term, not the event engine. `bun run eval:ablation`.
 
 Full machine-readable results: `data/reports/*.json` (committed).
 
@@ -100,9 +100,9 @@ additionally uses trailing channel ranks, Fisher combination, BH-first fallback,
 and a two-per-day budget; baselines use a direct growing rank of their raw score
 and an unbudgeted record rule.
 
-The result is deliberately mixed: simple reconstruction methods isolate the
-short blackout much better, while TRACE-C ranks Storm Atiyah first and has the
-most stable empirical rank counts. PCA and Spectral Residual are visibly
+The result is deliberately mixed: simple reconstruction isolates the short
+blackout much better, TRACE-C ranks Atiyah first for local (not copula)
+reasons, and TRACE-C has the most stable empirical rank counts. PCA and Spectral Residual are visibly
 anti-conservative pre-COVID under their regime-naive global references. Event
 ranks also have unequal opportunity counts (blackout 5 windows, Atiyah 12,
 each two-day storm 24, lockdown transition 168); the Isolation Forest lockdown
@@ -138,7 +138,7 @@ reports' `honesty_note`:
 bun install            # frozen dependency lock; Bun 1.3.11
 bash scripts/fetch-data.sh    # ~150MB transient downloads (NESO Open Data Licence) → ~4MB kept
 bun run eval           # rebuilds TRACE-C reports, 2019 ablation, hash-checked baselines
-bun run check:core     # 15 Bun tests + types + full evidence provenance
+bun run check:core     # Bun tests + types + full evidence provenance
 ```
 
 To retrain every baseline and regenerate its score artifact:

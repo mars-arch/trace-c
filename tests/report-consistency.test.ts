@@ -54,3 +54,22 @@ test("rank-PIT K=40 ceiling documentation is approximately 2.2509", () => {
   expect(traceC).toContain("2.2509");
   expect(traceC).not.toContain("2.33 at K=40");
 });
+
+test("publication prose does not sell Atiyah as copula detection", () => {
+  const readme = readFileSync(join(import.meta.dir, "../README.md"), "utf8");
+  const abstract = readFileSync(join(import.meta.dir, "../paper/sections/abstract.tex"), "utf8");
+  const intro = readFileSync(join(import.meta.dir, "../paper/sections/introduction.tex"), "utf8");
+  const results = readFileSync(join(import.meta.dir, "../paper/sections/results.tex"), "utf8");
+  const limitations = readFileSync(join(import.meta.dir, "../paper/sections/limitations.tex"), "utf8");
+  const conclusion = readFileSync(join(import.meta.dir, "../paper/sections/conclusion.tex"), "utf8");
+
+  expect(limitations).not.toContain("ablations, synthetics");
+  expect(limitations).toContain("channel ablation");
+  expect(results).toContain("tab:ablation");
+  for (const text of [readme, abstract, intro, results, conclusion]) {
+    expect(text.toLowerCase()).not.toMatch(/atiyah[^\n.]{0,80}joint surprise/);
+    expect(text.toLowerCase()).not.toMatch(/copula[^\n.]{0,80}recovers? storm atiyah/);
+  }
+  expect(abstract).toMatch(/copula-only/i);
+  expect(readme).toMatch(/[Cc]opula-only/);
+});

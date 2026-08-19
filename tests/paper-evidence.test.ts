@@ -3,6 +3,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import {
   loadPaperEvidence,
+  renderAblationTable,
   renderBaselineTable,
   renderTraceResultsTable,
 } from "../src/paper-evidence";
@@ -72,5 +73,25 @@ describe("paper evidence", () => {
     expect(results).not.toContain("\\input{paper/");
     expect(main).toContain("\\input{sections/abstract}");
     expect(results).toContain("\\input{generated/results-table}");
+    expect(results).toContain("\\input{generated/ablation-table}");
+  });
+
+  test("renders the 2019 development-year ablation without treating it as a hold-out", () => {
+    const evidence = loadPaperEvidence(root);
+    const table = renderAblationTable(evidence);
+
+    expect(evidence.ablation.protocol).toContain("Not a hold-out");
+    expect(evidence.ablation.variants.copula_only.atiyahRank).toBe(59);
+    expect(evidence.ablation.variants.temporal_only.blackoutRank).toBe(40);
+    expect(evidence.ablation.variants.drop_copula.atiyahRank).toBe(2);
+    expect(evidence.ablation.variants.full.atiyahAlerted).toBe(true);
+    expect(evidence.ablation.variants.drop_copula.atiyahAlerted).toBe(false);
+
+    expect(table.startsWith("% AUTO-GENERATED")).toBeTrue();
+    expect(table).toContain("development-year");
+    expect(table).toContain("not a hold-out");
+    expect(table).toContain("copula only");
+    expect(table).toContain("59");
+    expect(table).toContain("40");
   });
 });

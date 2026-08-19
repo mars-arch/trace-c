@@ -103,6 +103,36 @@ export type PaperBaseline = {
   y2020: RawBaselineSegment;
 };
 
+type AblationKnownEvent = {
+  id: string;
+  alerted: boolean;
+  rank: number | null;
+  lead_channel: string | null;
+};
+
+type RawAblationVariant = {
+  channels: string[];
+  selection: string;
+  alerts_total: number;
+  expected_null_alerts: number;
+  known_events: AblationKnownEvent[];
+};
+
+type RawAblationReport = {
+  protocol: string;
+  variants: Record<string, RawAblationVariant>;
+};
+
+export type PaperAblationVariant = {
+  channels: string[];
+  alerts: number;
+  atiyahRank: number;
+  atiyahAlerted: boolean;
+  atiyahLead: string | null;
+  blackoutRank: number;
+  blackoutLead: string | null;
+};
+
 export type PaperEvidence = {
   trace2019: {
     calibration: CalibrationRow[];
@@ -120,6 +150,10 @@ export type PaperEvidence = {
   };
   baselines: PaperBaseline[];
   traceComparison: RawTraceComparison;
+  ablation: {
+    protocol: string;
+    variants: Record<string, PaperAblationVariant>;
+  };
 };
 
 const EVENT_NAMES: Record<string, string> = {
@@ -168,6 +202,7 @@ export function loadPaperEvidence(root: string): PaperEvidence {
   const real = readJson<RawRealReport>(join(reports, "trace-c-real-report.json"));
   const holdout = readJson<RawHoldoutReport>(join(reports, "trace-c-holdout-report.json"));
   const baselines = readJson<RawBaselinesReport>(join(reports, "baselines-report.json"));
+  const ablation = readJson<RawAblationReport>(join(reports, "trace-c-ablation-2019.json"));
 
   const countOpportunity = (id: string) =>
     holdout.timeline.filter((window) => window.known === id).length;
@@ -208,6 +243,30 @@ export function loadPaperEvidence(root: string): PaperEvidence {
     },
     baselines: baselines.baselines,
     traceComparison: baselines.trace_c,
+    ablation: {
+      protocol: ablation.protocol,
+      variants: Object.fromEntries(
+        Object.entries(ablation.variants).map(([name, variant]) => {
+          const atiyah = variant.known_events.find((event) => event.id.includes("ATIYAH"));
+          const blackout = variant.known_events.find((event) => event.id.includes("BLACKOUT"));
+          if (atiyah?.rank == null || blackout?.rank == null) {
+            throw new Error(`ablation variant ${name} is missing event ranks`);
+          }
+          return [
+            name,
+            {
+              channels: variant.channels,
+              alerts: variant.alerts_total,
+              atiyahRank: atiyah.rank,
+              atiyahAlerted: atiyah.alerted,
+              atiyahLead: atiyah.lead_channel,
+              blackoutRank: blackout.rank,
+              blackoutLead: blackout.lead_channel,
+            } satisfies PaperAblationVariant,
+          ];
+        }),
+      ),
+    },
   };
 }
 
@@ -343,6 +402,39 @@ export function renderBaselineTable(evidence: PaperEvidence): string {
 \\begin{tabular}{@{}lrrrrrl@{}}
 \\toprule
 Detector & Blackout & Atiyah & Ciara & Dennis & Lockdown window & Pre-COVID $p\\leq .05$ \\\\
+\\midrule
+${rows.join("\n")}
+\\bottomrule
+\\end{tabular}
+\\end{table*}
+`;
+}
+
+const ABLATION_ROW_ORDER = [
+  ["full", "full (L+G+T)"],
+  ["drop_copula", "drop copula"],
+  ["drop_local", "drop local"],
+  ["drop_temporal", "drop temporal"],
+  ["local_only", "local only"],
+  ["copula_only", "copula only"],
+  ["temporal_only", "temporal only"],
+] as const;
+
+export function renderAblationTable(evidence: PaperEvidence): string {
+  const rows = ABLATION_ROW_ORDER.map(([key, label]) => {
+    const variant = evidence.ablation.variants[key];
+    if (!variant) throw new Error(`missing ablation variant ${key}`);
+    const atiyah = variant.atiyahAlerted ? `${variant.atiyahRank} (alert)` : String(variant.atiyahRank);
+    return `${latexEscape(label)} & ${latexEscape(variant.channels.join("+"))} & ${atiyah} & ${variant.blackoutRank} & ${variant.alerts} \\\\`;
+  });
+
+  return `${GENERATED_HEADER}\\begin{table*}[t]
+\\centering
+\\caption{2019 development-year channel ablation, not a hold-out. The full detector's Atiyah lead channel was inspected before these reruns. Lower rank is better.}
+\\label{tab:ablation}
+\\begin{tabular}{@{}llrrr@{}}
+\\toprule
+Variant & Channels & Atiyah rank & Blackout rank & Alerts \\\\
 \\midrule
 ${rows.join("\n")}
 \\bottomrule

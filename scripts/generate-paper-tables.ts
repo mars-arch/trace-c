@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 import {
   loadPaperEvidence,
+  renderAblationTable,
   renderBaselineTable,
   renderTraceResultsTable,
 } from "../src/paper-evidence";
@@ -14,6 +15,7 @@ export function writePaperTables(root: string): string[] {
   const outputs: [string, string][] = [
     ["results-table.tex", renderTraceResultsTable(evidence)],
     ["baseline-table.tex", renderBaselineTable(evidence)],
+    ["ablation-table.tex", renderAblationTable(evidence)],
   ];
   for (const [name, contents] of outputs) {
     writeFileSync(join(outputDir, name), contents, "utf8");

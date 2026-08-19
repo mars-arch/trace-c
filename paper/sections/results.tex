@@ -38,14 +38,29 @@ that 2020 lacked unusual windows.
 \subsection{Annotated event ranks}
 
 The 2019 results are sharply mixed. Storm Atiyah is rank 1 of 2,208 with
-$p=0.000350$ and passes the record rule. Its score reflects a sustained
-multi-stream episode across the 12-window annotation interval documented by the
-Met Office \citep{metoffice2020stormseason}. By contrast, the 9 August power-cut
-interval has a best rank of 143 and $p=0.060420$ across 5 opportunities, despite
-the presence of the frequency-deviation stream. The source event was real and
-operationally important \citep{ofgem2020poweroutage}; its mediocre detector rank
-shows that importance and separability at the chosen aggregation are different
-properties.
+$p=0.000350$ and passes the record rule. The full detector's lead channel on
+that window is local, not copula-form, and the episode is a sustained
+multi-stream extreme documented by the Met Office
+\citep{metoffice2020stormseason}. By contrast, the 9 August power-cut interval
+has a best rank of 143 and $p=0.060420$ across 5 opportunities, despite the
+frequency-deviation stream. The source event was real and operationally
+important \citep{ofgem2020poweroutage}; importance and separability at the
+chosen aggregation are different properties.
+
+\subsection{2019 channel ablation}
+
+\input{generated/ablation-table}
+
+Table~\ref{tab:ablation} is a development-year diagnostic, not a hold-out: the
+full detector's Atiyah lead channel was inspected before the reruns. Isolating
+the copula-form channel does not recover Atiyah (rank 59). Dropping that
+channel leaves Atiyah at rank 2 without a record-rule alert, so the copula term
+changes whether the fallback fires, not whether the window is extreme. Local
+is the Atiyah engine (local-only rank 3; dropping local removes alerts). The
+short frequency event is strongest on the temporal channel alone (rank 40
+versus 143 fused). Fisher aggregation can therefore bury a brief transient
+that a single channel would rank more highly. These reruns do not support
+describing Atiyah as a copula-only discovery.
 
 In the frozen 2020 run, Ciara's best of 24 windows is rank 44 with
 $p=0.012058$, and Dennis's best of 24 is rank 137 with $p=0.033217$. These storm
@@ -87,10 +102,10 @@ regime-naive reference and were produced after inspection of TRACE-C's 2020
 results, the table is neither a matched selection-budget leaderboard nor an
 independent validation.
 
-Overall, no detector dominates. TRACE-C is responsive to one sustained
-relational episode and its reported rank counts are comparatively near the
-exchangeable references at the displayed thresholds. Simple reconstruction is
-far better on the short frequency event. Isolation Forest supplies the smallest
-lockdown-interval rank. The appropriate interpretation is an interaction among
-score construction, interval length, sensor set, and temporal resolution, not
-a universal ranking of algorithms.
+Overall, no detector dominates. TRACE-C's fused detector ranks Atiyah first,
+but the ablation shows that rank is not copula detection. Reconstruction is
+far better on the short frequency event, consistent with the temporal-only
+ablation ranking that event 40th while the fused detector ranks it 143rd.
+Isolation Forest supplies the smallest lockdown-interval rank. The appropriate
+interpretation is an interaction among score construction, interval length,
+sensor set, and temporal resolution, not a universal ranking of algorithms.

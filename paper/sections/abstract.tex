@@ -1,24 +1,18 @@
-Operational telemetry may be ordinary stream by stream yet unusual in its
-cross-stream configuration. TRACE-C addresses this setting with strictly-prior
-online scoring. Same-regime rolling median/MAD residuals feed three window
-channels: a maximum normalized local sum, a Gaussian dependence contrast, and
-a worst standardized AR(1) innovation. Upper-tail channel ranks are aggregated
-by a Fisher construction, and the aggregate is ranked against earlier
-aggregates. The resulting conformal/rank $p$-values are selection quantities,
-not estimated event probabilities or posterior confidence. The historically
-named
-``copula'' channel is evaluated directly on robust-z residuals; because the
-shipped method applies no probability-integral or normal-score transform, it is
-a Gaussian copula-form log-density contrast rather than a literal copula
-density.
+TRACE-C is a strictly-prior rank-calibrated detector for aligned operational
+telemetry. Same-regime rolling median/MAD residuals feed three window channels:
+a maximum normalized local sum, a Gaussian copula-form dependence contrast on
+robust-z residuals, and a worst standardized AR(1) innovation. Channel ranks
+are Fisher-aggregated and ranked against earlier aggregates. The resulting
+$p$-values are selection quantities, not event probabilities. The copula-form
+channel is not a literal copula density: the method applies no
+probability-integral or normal-score transform.
 
-We evaluate six Great Britain grid streams: five half-hourly demand-side series
-and a half-hourly maximum-deviation summary of system frequency. January--April
-2019 is designated for fitting, July--December 2019 is development evidence,
-and the unchanged detector is run through a frozen 2020 hold-out. TRACE-C ranks
-Storm Atiyah first in development but ranks the short 9 August frequency event
-143rd; reconstruction baselines rank that event first. In 2020, its best
-lockdown-transition window is rank 45 on 28 March, while no window is selected.
-Empirical rank counts are descriptive diagnostics rather than coverage or
-false-discovery proofs. The mixed findings expose the consequences of temporal
-dependence, record-rule saturation, sensor choice, and aggregation resolution.
+We evaluate six Great Britain grid streams with a January--April 2019 fit,
+July--December 2019 development evidence, and a frozen 2020 hold-out. TRACE-C
+ranks Storm Atiyah first among 2019 test windows, but a development-year
+channel ablation shows that this is not copula detection: copula-only ranks
+Atiyah 59th, dropping the copula channel leaves it 2nd without a record-rule
+alert, and the full detector's Atiyah lead channel is local. The short 9 August
+frequency event is rank 143 under the fused detector and 40th on the temporal
+channel alone; reconstruction baselines rank it first. In 2020 no window is
+selected. Empirical rank counts are diagnostics, not coverage or FDR proofs.

@@ -14,9 +14,9 @@ latexmk -cd -pdf -interaction=nonstopmode -halt-on-error paper/main.tex
 ```
 
 The bibliography uses BibTeX (`natbib`/`plainnat`); `biber` is not required.
-Until package scripts are added, run these commands manually. The generated
-files are `paper/generated/results-table.tex` and
-`paper/generated/baseline-table.tex`.
+Until package scripts are added, run these commands manually. The generated files are `paper/generated/results-table.tex`,
+`paper/generated/baseline-table.tex`, and
+`paper/generated/ablation-table.tex`.
 
 This scaffold reflects evidence commit `88aa648` (`fix: align data fetcher
 with NESO licence`) and the original frozen evidence lineage

@@ -1,0 +1,19 @@
+% AUTO-GENERATED from committed TRACE-C JSON evidence. DO NOT EDIT BY HAND.
+\begin{table*}[t]
+\centering
+\caption{2019 development-year channel ablation, not a hold-out. The full detector's Atiyah lead channel was inspected before these reruns. Lower rank is better.}
+\label{tab:ablation}
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Variant & Channels & Atiyah rank & Blackout rank & Alerts \\
+\midrule
+full (L+G+T) & local+copula+temporal & 1 (alert) & 143 & 2 \\
+drop copula & local+temporal & 2 & 69 & 1 \\
+drop local & copula+temporal & 3 & 119 & 0 \\
+drop temporal & local+copula & 5 & 338 & 1 \\
+local only & local & 3 & 241 & 0 \\
+copula only & copula & 59 & 323 & 0 \\
+temporal only & temporal & 10 & 40 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table*}
