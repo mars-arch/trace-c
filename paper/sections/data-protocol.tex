@@ -1,26 +1,95 @@
 \section{Data and evaluation protocol}
+\label{sec:protocol}
 
-The study uses five half-hourly NESO demand-side streams and a sixth stream
-formed by aggregating one-second system-frequency data to the maximum absolute
-deviation from 50 Hz in each half-hour
-\citep{neso2019historicdemand,neso2019systemfrequency}. Data are used under
-the NESO Open Data Licence \citep{nesoOpenLicence}, with the exact attribution
-``Supported by National Energy SO Open Data.'' Source checksums,
-transformations, and report-generator provenance are committed alongside the
-machine-readable evidence.
+\subsection{Streams, aggregation, and provenance}
 
-January--April 2019 is the fit segment. The remainder of 2019 is a development
-year in which window width, trailing-history parameters, and channel choices
-were disclosed as test-informed. The 2020 run was frozen before inspecting its
-events and is the blind hold-out. Windows are non-overlapping and scored
-causally against strictly prior windows. Event ranks are evaluation labels, not
-features; the outage, storm, and lockdown annotations are documented
-independently
-\citep{ofgem2020poweroutage,metoffice2020stormseason,metoffice2020stormalex,ukgov2020lockdown,ngeso2021endyear}.
-A storm name attached to a high-ranked window is a post-ranking interpretation.
+The case study uses public Great Britain electricity-system telemetry from the
+National Energy System Operator (NESO). Five demand-side columns are read at
+half-hour settlement resolution: national demand (ND), transmission-system
+demand (TSD), embedded wind generation, embedded solar generation, and pumped
+storage pumping \citep{neso2019historicdemand}. A sixth column is formed from
+NESO system-frequency data by taking the maximum absolute deviation from
+50~Hz within each settlement period \citep{neso2019systemfrequency}. This
+half-hour maximum retains an extreme deviation but not its sub-period timing or
+waveform.
 
-External baselines use the same six streams, windows, fit dates, causal score
-direction, and event intervals. They were assembled after the frozen TRACE-C
-2020 results were visible and therefore are a post-hoc comparison, not a
-second blind experiment. Event opportunity counts are reported because the
-blackout, storms, and lockdown transition cover unequal numbers of windows.
+The retained 2019 and 2020 inputs are pinned by byte count and SHA-256 checksum.
+The report objects identify the generating source files and source-manifest
+hashes; the paper tables are generated from those committed reports. The data
+are used under the NESO Open Data Licence \citep{nesoOpenLicence}. Required
+attribution is: ``Supported by National Energy SO Open Data.''
+
+Rows are ordered by settlement date and period. The same-regime residual
+history distinguishes weekday from weekend and settlement period. The loader
+handles settlement-period irregularities defensively, while the later alert
+budget still groups fixed 48-row blocks; that distinction matters on
+daylight-saving transitions.
+
+\subsection{Segments and frozen protocol}
+
+January--April 2019 is designated as the fit segment for the dependence matrix
+and AR(1) parameters. It is assumed representative enough for this role; it is
+not established to be anomaly-free or ``clean.'' May--June supplies prior
+windows before the declared evaluation segment. July--December 2019 is the
+development segment, comprising 2,208 scored non-overlapping windows. Choices
+of $W=4$, $K=40$, the robust-z marginal, and inclusion of the frequency summary
+were informed by 2019 evidence and are not validation outcomes.
+
+The method, sensor set, and configuration were then fixed before the 2020
+events were inspected. Rolling references continue across the year boundary,
+and all 4,392 scored windows in 2020 form the frozen TRACE-C hold-out. We use
+``frozen'' to describe this development chronology, not to assert that the
+hold-out is a clean null year. In particular, 2020 contains major weather and
+demand-regime changes documented independently
+\citep{metoffice2020stormseason,ukgov2020lockdown,ngeso2021endyear}.
+
+\subsection{Event annotations and opportunities}
+
+Annotations are joined only after ranking. The 9 August 2019 power cut and
+frequency disturbance is documented by Ofgem \citep{ofgem2020poweroutage}; its
+evaluation interval overlaps 5 two-hour windows. Storm Atiyah spans 12 windows,
+while the two-day Ciara and Dennis intervals contain 24 windows each, using the
+Met Office storm chronology \citep{metoffice2020stormseason}. The first
+lockdown evaluation interval is 23 March--5 April 2020, or 168 windows, anchored
+to the 23 March announcement \citep{ukgov2020lockdown}. Because event intervals
+differ, their best ranks have unequal opportunity for a small value and should
+not be treated as like-for-like point-event metrics.
+
+Storm Ellen and Storm Alex were not pre-specified evaluation intervals. Their
+names were attached after ranking to the 20 August and 3 October windows using
+the external storm record \citep{metoffice2020stormseason,metoffice2020stormalex}.
+They are interpretations of unalerted windows, not detector inputs or
+discoveries.
+
+\subsection{Post-hoc baselines}
+
+Four baselines share the source rows, six-stream sensor set, $W=4$ windows,
+fit cutoff, evaluation dates, score direction, and event intervals. They are a
+convolutional autoencoder inspired by standard reconstruction approaches
+\citep{sakurada2014autoencoders,vijay2020kerasautoencoder}, PCA reconstruction
+with three components \citep{jackson1979pcaresiduals}, a 200-tree Isolation
+Forest with fixed seed on window mean/standard-deviation features
+\citep{liu2008isolationforest}, and a trailing-context Spectral Residual score
+\citep{ren2019spectralresidual}.
+
+Their protocol is explicitly non-identical to TRACE-C. Each baseline uses
+global per-stream fit mean/standard-deviation scaling, then directly ranks its
+raw anomaly score against a growing strictly-prior history after a 40-window
+post-fit warm-up. Selection is an unbudgeted record rule. TRACE-C instead uses
+same-regime robust residuals, three trailing 240-window channel ranks, Fisher
+aggregation, a growing outer rank, a BH-first selector, and a two-per-block
+budget. The baseline suite was constructed after TRACE-C's 2020 results were
+known. Thus only TRACE-C was frozen before 2020 inspection, and Table
+\ref{tab:baselines} is a post-hoc comparison rather than a second hold-out
+experiment.
+
+\subsection{Reproducibility}
+
+The deterministic TypeScript evaluation rebuilds both TRACE-C reports from the
+pinned inputs. The baseline score artifact records its fixed random seed,
+trainer/source hash, input-series hash, runtime versions, and training history;
+the final evaluator verifies those fields before producing the comparison.
+Generated \LaTeX{} tables are derived from the JSON evidence rather than edited
+manually. These measures support computational reproduction of the reported
+arithmetic, while making no claim that different platforms will produce
+bitwise-identical external-model artifacts.

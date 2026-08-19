@@ -1,24 +1,96 @@
 \section{Results}
 
-The committed evidence contains 2,208 scored windows in 2019 and 4,392 in
-2020. In 2019, the empirical rank checks are 120/110 at $p\leq .05$, 51/44 at
-$p\leq .02$, and 23/22 at $p\leq .01$ (observed/reference). On the blind
-2020 pre-COVID segment the corresponding checks are 50/45 and 3/9 at .05 and
-.01, respectively. These are descriptive diagnostics for a drifting,
-autocorrelated series, not formal null certification.
+\subsection{Empirical rank diagnostics and selection}
 
-Storm Atiyah is rank 1 of 2,208 in 2019 and is alerted. The 9 August 2019 GB
-frequency event is in the top approximately 6.5 percent but is not separable at
-30-minute aggregation. On 2020, Storm Ciara is rank 44, the lockdown
-transition's best window is rank 45, and Storm Dennis is rank 137. The highest
-ranked 2020 windows later receive the external interpretations Storm Ellen and
-Storm Alex; those labels were not supplied to the detector.
+Table~\ref{tab:trace-calibration} compares the number of outer rank values below
+selected thresholds with the arithmetic count $\alpha n$. In 2019, the full
+report also gives 51 observed versus 44.2 at $p\leq.02$. The displayed
+thresholds are close in some segments and conservative in others: 2019 has
+120/110.4 at $.05$ and 23/22.1 at $.01$; pre-COVID 2020 has 50/45.0 and 3/9.0.
+The full 2020 count is 205/219.6 at $.05$ (and 39/43.9 at $.01$ in the
+machine-readable report). These are descriptive empirical rank diagnostics.
+Autocorrelation, drift, reused references, and known events rule out treating
+them as proof of uniform $p$-values, coverage, or false-discovery control
+\citep{shafer2008tutorial,bates2023conformaloutliers}.
 
-The post-hoc baselines make the trade-off visible. Convolutional autoencoder
-and PCA reconstruction rank the short blackout first, Isolation Forest ranks
-the lockdown interval first, and TRACE-C ranks Atiyah first while retaining the
-most stable-looking rank counts in the supplied comparison. The baseline table
-must be regenerated from the JSON reports rather than hand edited.
+BH selected no windows in either reported TRACE-C segment, so the disclosed
+record fallback ran. The 2019 development segment contains two selected alerts
+versus an exchangeable-continuous benchmark of 1.19; one is the Atiyah window
+and the other is an unlabelled 21 July window. The frozen 2020 segment contains
+zero selected alerts versus a benchmark of 0.87. Neither comparison is a
+hypothesis-test guarantee \citep{renyi1962records}. The absence of later records
+despite several small rank values is evidence of record saturation: once a high
+aggregate score enters the growing history, the rule becomes increasingly hard
+to trigger. Zero alerts is therefore a substantive frozen result, not evidence
+that 2020 lacked unusual windows.
 
+\begingroup
+\AtBeginEnvironment{tabular}{%
+  \ifnum\value{table}=3
+    \tiny\setlength{\tabcolsep}{2pt}%
+  \else
+    \scriptsize\setlength{\tabcolsep}{1pt}%
+  \fi
+}
 \input{generated/results-table}
+\endgroup
+
+\subsection{Annotated event ranks}
+
+The 2019 results are sharply mixed. Storm Atiyah is rank 1 of 2,208 with
+$p=0.000350$ and passes the record rule. Its score reflects a sustained
+multi-stream episode across the 12-window annotation interval documented by the
+Met Office \citep{metoffice2020stormseason}. By contrast, the 9 August power-cut
+interval has a best rank of 143 and $p=0.060420$ across 5 opportunities, despite
+the presence of the frequency-deviation stream. The source event was real and
+operationally important \citep{ofgem2020poweroutage}; its mediocre detector rank
+shows that importance and separability at the chosen aggregation are different
+properties.
+
+In the frozen 2020 run, Ciara's best of 24 windows is rank 44 with
+$p=0.012058$, and Dennis's best of 24 is rank 137 with $p=0.033217$. These storm
+intervals follow the external chronology \citep{metoffice2020stormseason}. The
+lockdown annotation covers 168 opportunities from 23 March through 5 April
+\citep{ukgov2020lockdown}. TRACE-C's best lockdown-window result is rank 45,
+$p=0.012559$, at 06:00 on 28 March. It is not the onset window and must not be
+described as onset detection.
+
+The highest-ranked 2020 window, 20 August at 03:00, was later interpreted as
+Storm Ellen; it has $p=0.000504$ but is unalerted. Rank 2, 20 January at 14:00,
+is unlabelled. Rank 5, 3 October at 23:00, was later interpreted as Storm Alex
+using the external storm account \citep{metoffice2020stormalex}; it too is
+unalerted. Table~\ref{tab:post-ranked-weather} lists the two post-ranking weather
+interpretations without implying that they are the top two windows or
+algorithmic discoveries.
+
+\subsection{Post-hoc baseline comparison}
+
 \input{generated/baseline-table}
+
+Table~\ref{tab:baselines} reinforces the aggregation trade-off. The
+convolutional autoencoder and PCA reconstruction score the 2019 frequency event
+at rank 1, while Isolation Forest and Spectral Residual give rank 2. These
+detector families target reconstruction, isolation, or spectral saliency
+rather than TRACE-C's relational rank aggregate
+\citep{sakurada2014autoencoders,jackson1979pcaresiduals,liu2008isolationforest,ren2019spectralresidual}.
+TRACE-C instead gives Atiyah rank 1; the autoencoder, PCA, Isolation Forest, and
+Spectral Residual give Atiyah ranks 34, 12, 3, and 26, respectively.
+
+For the 168-window lockdown interval, Isolation Forest ranks its best window
+first, PCA 22nd, the autoencoder 46th, and Spectral Residual 6th, compared with
+TRACE-C at 45th. The best baseline dates are 5 April for the autoencoder, PCA,
+and Isolation Forest, and 28 March for Spectral Residual. These are interval
+search outcomes, not claims about 23 March onset. The pre-COVID $.05$ counts
+also vary widely: 27/45 for the autoencoder, 82/45 for PCA, 49/45 for Isolation
+Forest, and 93/45 for Spectral Residual. Because the baseline ranks use a global
+regime-naive reference and were produced after inspection of TRACE-C's 2020
+results, the table is neither a matched selection-budget leaderboard nor an
+independent validation.
+
+Overall, no detector dominates. TRACE-C is responsive to one sustained
+relational episode and its reported rank counts are comparatively near the
+exchangeable references at the displayed thresholds. Simple reconstruction is
+far better on the short frequency event. Isolation Forest supplies the smallest
+lockdown-interval rank. The appropriate interpretation is an interaction among
+score construction, interval length, sensor set, and temporal resolution, not
+a universal ranking of algorithms.

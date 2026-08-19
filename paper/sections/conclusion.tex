@@ -1,14 +1,21 @@
 \section{Conclusion}
 
-TRACE-C provides a compact, causal way to ask whether multiple ordinary-looking
-telemetry streams form an unusual relational pattern. Its useful contribution
-is the complete protocol: robust magnitude-preserving marginals, dependence and
-temporal channels, strictly-prior rank calibration, disclosed selection
-fallbacks, and a frozen hold-out with provenance.
+TRACE-C is best understood as a strictly-prior rank-calibrated detector, not a
+literal copula calibration procedure. It combines magnitude-preserving robust
+residuals, local/dependence/temporal channels, a rank-aggregated score, and an
+explicit selection path. Its rank $p$-values support ordering and selection;
+they are not estimated event probabilities or posterior confidence.
 
-The results argue for calibrated diagnostics and human review rather than
-overstated guarantees. TRACE-C is strongest on coherent multi-stream episodes;
-simple reconstruction is stronger on the short frequency transient in this
-aggregation. Future work should validate calendar-aware budgets and selection
-rules on a subsequent untouched year, and should evaluate dependence-robust
-conformal procedures designed for longer-range telemetry dependence.
+The evidence is mixed and operationally informative. TRACE-C ranks Storm
+Atiyah first in 2019 development, but simple reconstruction ranks the short
+frequency event much better. The frozen 2020 run selects no alerts, while its
+ranked list contains plausible weather-associated and unlabelled extremes. The
+result exposes record saturation and the importance of sensor and aggregation
+choices rather than establishing nominal FDR.
+
+Future work should pre-register a dependence-aware selector, evaluate it on a
+new untouched period, preserve sub-period frequency information, test missing
+streams and alternative aggregations, and replace fixed 48-row attention blocks
+with calendar-aware budgeting. The current contribution is the narrower one:
+an auditable algorithm and evidence package whose assumptions, fallbacks, and
+negative results are stated at the same resolution as its successes.

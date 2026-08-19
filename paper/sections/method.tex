@@ -1,30 +1,135 @@
 \section{Method}
 
-Let $x_{t,j}$ be the aligned value of stream $j$ at half-hour index $t$.
-For each regime and stream, TRACE-C computes a strictly-prior rolling median
-$m_{t,j}$ and median absolute deviation $d_{t,j}$, then forms
-\[
- z_{t,j}=\operatorname{clip}\!\left(\frac{x_{t,j}-m_{t,j}}
- {1.4826d_{t,j}},-10,10\right).
-\]
-The initial fit period supplies a covariance estimate for the copula channel;
-no future window contributes to a score or its reference set.
+\subsection{Problem setup and online information set}
 
-For a non-overlapping window of width $W$, three channels are computed: a local
-aggregate based on the largest normalized stream sum, a Gaussian-copula
-dependence surprise based on the residual vector, and the worst AR(1)
-innovation. Each channel score is converted to a rank-$p$ against the trailing
-window history. With channel $p$-values $p_1,\ldots,p_K$, the combined score is
-\[
- S=-2\sum_{k=1}^{K}\log p_k,
- \qquad p_t=\frac{1+\#\{S_s\ge S_t:s<t\}}{n_{t-1}+1}.
-\]
-The finite-sample rank formula is retained exactly; no decimal rounding is
-used in selection.
+Let $x_{t,j}$ denote aligned telemetry from stream $j\in\{1,\ldots,d\}$ at
+half-hour row $t$. TRACE-C partitions the row sequence into non-overlapping
+windows $I_w=\{wW,\ldots,wW+W-1\}$ with $W=4$, corresponding to two hours on
+ordinary 48-period days. A score for $I_w$ may use fitted parameters from the
+designated fit segment and observations with indices strictly smaller than the
+row or window being scored. We call this \emph{strictly-prior online scoring};
+it is an information-flow property, not a causal-inference claim.
 
-The primary selection attempts BH at $q=0.05$. If conformal granularity
-selects no windows, TRACE-C records a fallback record rule, in which a window
-must beat every strictly prior combined score. A hard two-alert daily budget
-then limits operator attention. Reports include the rule that actually ran and
-the exchangeable-null reference count $\sum_s1/(n_s+1)$; this count is a
-reference diagnostic, not a coverage theorem for seasonal telemetry.
+The desired output is a ranked list of anomalous windows together with compact
+score contributions. No event annotation enters the scoring function. The
+implementation emits only the window index $w$, starting row $t_0$, outer rank
+$p$, aggregate score $S$, channel contributions, and per-stream contributions.
+It does not implement a separate severity field or a reason-code schema.
+
+\subsection{Regime-conditioned robust residuals}
+
+Each row is assigned a regime given by settlement period crossed with
+weekday/weekend status. For every stream and regime, the method takes the
+$K=40$ most recent same-regime values strictly before $t$, computes their
+median $m_{t,j}$ and median absolute deviation $d_{t,j}$, and forms
+\begin{equation}
+ z_{t,j}=\operatorname{clip}\!\left(
+ \frac{x_{t,j}-m_{t,j}}{1.4826\,d_{t,j}},-10,10\right).
+ \label{eq:robust-z}
+\end{equation}
+MAD scaling follows the standard robust-scale construction
+\citep{rousseeuw1993mad}; a zero MAD is replaced in code by a small positive
+floor.
+
+This magnitude-preserving choice is deliberate. A same-regime rank-PIT with
+$K$ reference values followed by an inverse-normal map cannot exceed
+\(\Phi^{-1}((K+\tfrac12)/(K+1))\). At $K=40$ the ceiling is approximately
+$2.2509$, so a barely new record and a much deeper physical excursion receive
+the same transformed magnitude. Equation~\eqref{eq:robust-z} retains magnitude
+up to the disclosed $\pm10$ clipping limit; the later rank layers still govern
+selection.
+
+\subsection{Three window channels}
+
+The shipped detector contains exactly three channels. First, the local channel
+is the largest absolute normalized window sum,
+\begin{equation}
+ L_w=\max_j\left|\frac{1}{\sqrt W}\sum_{t\in I_w}z_{t,j}\right|.
+ \label{eq:local}
+\end{equation}
+It favors sustained magnitude within at least one stream while avoiding a sum
+over streams that would conceal the responsible sensor.
+
+Second, let $R$ be the normalized residual cross-product matrix estimated from
+complete robust-z rows in the January--April fit segment, with a ridge added if
+needed for a Cholesky factorization. The relational score averages
+\begin{equation}
+ G_w=\frac{1}{W}\sum_{t\in I_w}
+ \left\{\frac12\bigl(z_t^{\mathsf T}R^{-1}z_t-z_t^{\mathsf T}z_t\bigr)
+       +\frac12\log|R|\right\}.
+ \label{eq:relation}
+\end{equation}
+This is a Gaussian copula-form negative log-density contrast suggested by the
+usual Gaussian copula algebra \citep{sklar1959fonctions,song2000gaussiancopula}.
+However, the inputs are the robust residuals in
+Equation~\eqref{eq:robust-z}; the implementation performs no PIT and no
+normal-score transform. Thus $G_w$ is not a literal copula density, and its
+name is historical rather than a calibration claim.
+
+Third, an AR(1) coefficient $\phi_j$ and innovation standard deviation
+$\sigma_{e,j}$ are fitted per stream on the same designated fit segment. The
+temporal channel is the worst standardized innovation within the window,
+\begin{equation}
+ T_w=\max_{j,t\in I_w}
+ \frac{|z_{t,j}-\phi_jz_{t-1,j}|}{\sigma_{e,j}}.
+ \label{eq:temporal}
+\end{equation}
+Taking a maximum rather than a mean preserves a sharp transition that would be
+diluted by the other rows of a two-hour window.
+
+\subsection{Trailing channel ranks and outer rank}
+
+For each channel $c\in\{L,G,T\}$, let $\mathcal R_{c,w}$ be the trailing 240
+eligible channel scores strictly before window $w$. Once the reference is full,
+the upper-tail channel value is
+\begin{equation}
+ p_{c,w}=\frac{1+\#\{r\in\mathcal R_{c,w}:r\geq C_{c,w}\}}
+ {|\mathcal R_{c,w}|+1}.
+ \label{eq:channel-rank}
+\end{equation}
+The three channel ranks are dependent because they summarize the same rows.
+TRACE-C constructs
+\begin{equation}
+ S_w=-2\sum_{c\in\{L,G,T\}}\log p_{c,w},
+ \label{eq:fisher}
+\end{equation}
+following Fisher's aggregation form \citep{fisher1932statisticalmethods}.
+Equation~\eqref{eq:fisher} is only an aggregation score: no chi-square null
+distribution is claimed.
+
+The outer value ranks $S_w$ against the growing sorted set
+$\mathcal S_w$ of all strictly-prior available aggregate scores. It is emitted
+after at least 40 prior $S$ values:
+\begin{equation}
+ p_w=\frac{1+\#\{s\in\mathcal S_w:s\geq S_w\}}
+ {|\mathcal S_w|+1},\qquad |\mathcal S_w|\geq40.
+ \label{eq:outer-rank}
+\end{equation}
+All comparisons for selection use the exact arithmetic value from
+Equation~\eqref{eq:outer-rank}, not a displayed decimal. These are
+conformal/rank $p$-values for ordering and selection. Their finite-sample
+formula is exact, but the usual distributional interpretation still depends
+on exchangeability \citep{shafer2008tutorial}.
+
+\subsection{Selection, fallback, and budget}
+
+Across the scored windows in an evaluation segment, the implementation first
+applies ordinary BH at nominal $q=0.05$ \citep{benjamini1995fdr}. Independence
+or PRDS for these reused online ranks is not established, so this step is only
+a nominal selection attempt. If and only if BH returns zero windows, the code
+falls back to the upper-record rule
+\begin{equation}
+ p_w\leq p^{\min}_w=\frac{1}{|\mathcal S_w|+1},
+\end{equation}
+which is equivalent to $S_w$ strictly exceeding every earlier aggregate score.
+The fallback is commonly activated because rank granularity makes early BH
+thresholds unreachable. The report
+always names the rule used.
+
+Under an exchangeable continuous score sequence, the record indicator has
+expectation $1/(|\mathcal S_w|+1)$ \citep{renyi1962records}. TRACE-C reports
+the sum of those expectations as an \emph{exchangeable-continuous benchmark},
+not as a guarantee for seasonal, autocorrelated telemetry. Finally, selected
+windows are grouped by fixed 48-row blocks and at most two are retained per
+block. This is an attention budget, not a true calendar-day or daylight-saving
+safe construction.

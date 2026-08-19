@@ -1,16 +1,68 @@
 \section{Limitations and honesty ledger}
 
-The evidence does not establish nominal FDR or coverage for non-exchangeable
-grid telemetry. A fixed calibration experiment produced seasonal-drift
-artifacts and approximately 20-fold anti-conservative conformal values; the
-rolling calibration is the documented correction, with its empirical checks
-retained. The parameter sweep and marginal choice used the 2019 development
-evidence, and the frequency stream was event-informed. The 2020 hold-out limits
-but cannot erase that selection history.
+The central limitation is calibration under dependence. The rank arithmetic is
+strictly prior, but grid telemetry is not shown to be exchangeable. The rolling
+240-window channel references adapt to local score distributions; they do not
+turn the sequence into independent or identically distributed observations.
+The growing outer reference also reuses history across many tests. Consequently
+the empirical rank counts are descriptive, ordinary BH is nominal, and neither
+coverage nor FDR is established. Block conformal methods provide one relevant
+research direction \citep{chernozhukov2018dependentconformal}, but no such block
+construction is implemented here. Likewise, the conditions studied for
+conformal outlier testing do not transfer automatically to this online reuse
+pattern \citep{bates2023conformaloutliers}.
 
-The sensor set and aggregation resolution define what can be detected. A
-40-minute transient can disappear in half-hourly summaries, while a broad
-weather episode can rank highly because several streams move together. The
-fixed two-alert budget groups 48-row blocks and does not perfectly represent
-46/50-period daylight-saving days. Finally, baseline training and comparison
-were post-hoc; their ranks should not be read as an unbiased leaderboard.
+The record fallback is transparent but weak on a long horizon. Its expected
+count is an exchangeable-continuous benchmark, not a time-series guarantee
+\citep{renyi1962records}, and an early extreme can suppress later records. The
+zero-alert 2020 result alongside low-ranked unalerted windows empirically
+exhibits this saturation. A future selector should be specified before a new
+untouched period and evaluated with dependence and finite-resolution effects in
+view; this paper does not retroactively substitute such a rule.
+
+Development history also limits inference. A historical fixed-calibration
+episode produced 62 alerts; about 90\% were judged seasonal-drift artifacts,
+corresponding to roughly 20-fold anti-conservatism. This is a narrative
+disclosure only: there is no shipped artifact for that old run, and it is not a
+current comparator. The committed current comparison contains the demand-only
+variant, not a reconstruction of the historical fixed-calibration episode.
+Within the present algorithm, $W\in\{2,4\}$ and $K\in\{20,40\}$ were considered
+using 2019 development evidence, the change from rank-PIT to robust-z was
+event-informed, and the frequency stream was added after demand-only analysis.
+Freezing 2020 limits subsequent adaptation but cannot erase those choices.
+
+The relational terminology needs similar restraint. Equation
+\ref{eq:relation} resembles a Gaussian copula log-density contrast, yet the
+robust-z inputs are not probability-integral transformed normal scores as in a
+literal copula construction \citep{sklar1959fonctions,song2000gaussiancopula}.
+The score may still be useful as a fitted dependence contrast, but copula
+likelihood theory does not directly calibrate it. The three channel ranks are
+also dependent, so Fisher's chi-square reference is deliberately not used
+\citep{fisher1932statisticalmethods}.
+
+Sensor selection and aggregation define detectability. The frequency stream
+keeps only the maximum absolute deviation within a half-hour, and all channels
+are evaluated in non-overlapping two-hour windows. A short transient can lose
+its timing and be dominated by sustained background extremes, whereas a broad
+weather episode can produce coherent contributions across several streams.
+The stream-contribution list discloses large window residuals but is descriptive
+rather than a mechanistic explanation. Missing-stream robustness, alternative
+aggregations, per-stream performance, ablations, synthetics, PR-AUC, and
+matched-budget comparisons have not been evaluated.
+
+The baseline suite is post-hoc and protocol-non-identical. Global scaling,
+direct growing raw-score ranks, and unbudgeted record selection differ from
+TRACE-C's regime conditioning, two-stage ranks, aggregation, BH attempt, and
+fixed-block budget. Only TRACE-C was frozen before 2020 inspection, so apparent
+wins in either direction are exploratory. Event-best ranks also favor longer
+intervals through more opportunities.
+
+The attention limit is two selected windows per fixed 48-row block. It is not a
+calendar service: days with 46 or 50 settlement periods and daylight-saving
+transitions are not handled as true civil days. A deployment would need a
+calendar-aware budget and explicit policy for late or revised telemetry.
+
+Finally, the governance scope is deliberately narrow. TRACE-C ranks process
+and sensor anomalies in operational telemetry for human review. It is not
+designed, evaluated, or authorized for person-risk scoring, and the evidence in
+this study cannot support decisions about individuals.

@@ -1,25 +1,56 @@
 \section{Introduction}
 
-Grid operators monitor many streams whose marginal behavior changes with
-season, operating regime, and demand. A useful alert should identify a
-coherent departure across streams while preserving a causal scoring rule and a
-calibrated indication of rarity. This is difficult when the data are
-autocorrelated and when the event of interest is a short transient hidden by a
-coarse aggregation interval.
+Operational monitoring is intrinsically multivariate. Demand, embedded
+generation, pumping, and frequency can each remain within a historically
+familiar range while their joint configuration changes. Conversely, seasonal
+or regime drift can make many conventional anomaly scores large without a
+discrete operational event. The practical question is therefore not only
+whether a value is extreme, but whether a window is unusual relative to the
+information that would actually have been available when it arrived.
 
-TRACE-C (temporal relational anomaly detection with copula calibration) makes
-three design commitments. First, it preserves magnitude in robust marginal
-residuals rather than replacing a deep excursion with its rank. Second, it
-calibrates every channel against a trailing set of strictly prior windows,
-which exposes rather than silently assumes exchangeability. Third, it separates
-the development year from a frozen 2020 hold-out. The resulting detector is an
-operational ranking and triage aid, not a claim that every small conformal
-$p$-value has nominal time-series coverage.
+That question is difficult for three reasons. First, telemetry is serially
+dependent and nonstationary, whereas simple rank arguments are sharpest under
+exchangeability \citep{shafer2008tutorial}. Second, coarse summaries may erase
+short physical transients even when they make longer multi-stream episodes
+easy to rank. Third, an operational detector includes a selection policy as
+well as a score. A nominal multiple-testing procedure, a fallback rule, and an
+attention budget make different claims and must be reported separately.
 
-Our contribution is an auditable protocol and evidence package: a
-copula-informed relational score, causal rank calibration, explicit selection
-fallbacks, and a reproducible comparison against common anomaly detectors.
-The results are intentionally mixed. TRACE-C detects relational weather-like
-episodes well, whereas direct reconstruction can win on an abrupt frequency
-transient. That distinction is informative about the sensor set and resolution
-as much as about the algorithm.
+TRACE-C retains its historical name, ``temporal relational anomaly detection
+with copula calibration,'' but this manuscript narrows that description to the
+shipped algorithm. The method performs strictly-prior online scoring with
+rolling robust-z marginals and rank calibration. Its relational channel has the
+algebraic form of a Gaussian copula log-density contrast \citep{song2000gaussiancopula},
+but it is evaluated on robust-z residuals without a probability-integral or
+normal-score transform. It is therefore not a literal copula density. We keep
+the TRACE-C name for continuity and use ``rank-calibrated relational anomaly
+detection'' as the scientifically accurate description.
+
+The output $p$-values have an equally limited interpretation. They are
+upper-tail conformal/rank values used to order and select windows. They are not
+the probability that an alert is genuine, not posterior confidence, and not a
+guarantee of time-series coverage. Exchangeability provides a useful benchmark
+for interpreting ranks, but it is not established for these data.
+
+This paper makes four contributions:
+\begin{enumerate}
+  \item It specifies an auditable three-channel detector that preserves
+  residual magnitude while making every reference strictly prior to the
+  scored window.
+  \item It distinguishes the Gaussian copula-form dependence contrast actually
+  implemented from literal copula calibration, and distinguishes the Fisher
+  aggregation score from a chi-square test.
+  \item It reports the full selection path---ordinary BH attempted first, a
+  disclosed record-rule fallback, and a fixed-block alert budget---together
+  with the assumptions that prevent a nominal FDR claim.
+  \item It provides a frozen 2020 run, generated evidence tables, and a
+  deliberately non-identical post-hoc baseline comparison whose mixed results
+  reveal the roles of sensor selection and temporal aggregation.
+\end{enumerate}
+
+The results precede the limitations and conclusion so that the honesty ledger
+can be read against concrete evidence. TRACE-C ranks the sustained relational
+episode Storm Atiyah first, whereas reconstruction methods isolate the short
+2019 frequency event better. The frozen 2020 run produces no selected alerts.
+These are neither uniformly positive nor uniformly negative outcomes; they
+define the operating envelope supported by the present evidence.

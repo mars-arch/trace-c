@@ -1,17 +1,24 @@
-Operational telemetry can contain failures that are individually unremarkable
-but jointly unusual. TRACE-C is a causal detector for this setting: robust,
-regime-conditioned marginal residuals feed local, dependence, and temporal
-channels; trailing rank calibration converts those channels to finite-sample
-scores; and Fisher combination is ranked against strictly prior windows.
-Selection attempts Benjamini--Hochberg false-discovery-rate control and records
-when it falls back to a record rule, with a per-day attention budget.
+Operational telemetry may be ordinary stream by stream yet unusual in its
+cross-stream configuration. TRACE-C addresses this setting with strictly-prior
+online scoring. Same-regime rolling median/MAD residuals feed three window
+channels: a maximum normalized local sum, a Gaussian dependence contrast, and
+a worst standardized AR(1) innovation. Upper-tail channel ranks are aggregated
+by a Fisher construction, and the aggregate is ranked against earlier
+aggregates. The resulting conformal/rank $p$-values are selection quantities,
+not estimated event probabilities or posterior confidence. The historically
+named
+``copula'' channel is evaluated directly on robust-z residuals; because the
+shipped method applies no probability-integral or normal-score transform, it is
+a Gaussian copula-form log-density contrast rather than a literal copula
+density.
 
-We evaluate the frozen protocol on five demand-side streams and an aggregated
-system-frequency stream from Great Britain. January--April 2019 is the fit
-segment, the remainder of 2019 is development evidence, and 2020 is a blind
-hold-out. The committed diagnostics show a mixed result: TRACE-C ranks Storm
-Atiyah first and is comparatively stable in empirical rank checks, while
-reconstruction baselines isolate the short 9 August frequency event better.
-The study therefore treats exchangeability, aggregation resolution, event
-selection, and the distinction between a post-hoc label and a detector input as
-part of the result rather than as hidden assumptions.
+We evaluate six Great Britain grid streams: five half-hourly demand-side series
+and a half-hourly maximum-deviation summary of system frequency. January--April
+2019 is designated for fitting, July--December 2019 is development evidence,
+and the unchanged detector is run through a frozen 2020 hold-out. TRACE-C ranks
+Storm Atiyah first in development but ranks the short 9 August frequency event
+143rd; reconstruction baselines rank that event first. In 2020, its best
+lockdown-transition window is rank 45 on 28 March, while no window is selected.
+Empirical rank counts are descriptive diagnostics rather than coverage or
+false-discovery proofs. The mixed findings expose the consequences of temporal
+dependence, record-rule saturation, sensor choice, and aggregation resolution.

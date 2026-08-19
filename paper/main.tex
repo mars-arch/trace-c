@@ -6,11 +6,13 @@
 \usepackage[margin=0.78in]{geometry}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
+\usepackage{etoolbox}
 \usepackage{microtype}
 \usepackage[numbers,sort&compress]{natbib}
+\PassOptionsToPackage{hyphens}{url}
 \usepackage[hidelinks]{hyperref}
 
-\title{TRACE-C: Copula-Calibrated Temporal Relational Anomaly Detection\\
+\title{TRACE-C: Rank-Calibrated Relational Anomaly Detection\\
        for Multi-Stream Operational Telemetry}
 \author{Matthew Faucher\\Independent researcher}
 \date{19 Aug 2026}
@@ -31,11 +33,13 @@
 \input{sections/conclusion}
 
 \section*{Code and data availability}
-The complete implementation, committed evidence reports, table generator, and
-reproduction instructions are included in the accompanying repository. The
-telemetry inputs are obtained under the NESO Open Data Licence; retained input
-checksums and report provenance are committed with the code. A public archive
-URL and DOI will be added before submission.
+The implementation, committed machine-readable reports, table generator, and
+reproduction instructions accompany this manuscript. Retained telemetry inputs
+are covered by checksums and report-generator provenance. Data are provided by
+the National Energy System Operator under the NESO Open Data Licence
+\citep{nesoOpenLicence}. Required attribution: ``Supported by National Energy
+SO Open Data.'' A public repository URL and archival DOI are pending and will
+be added before submission; no permanent public identifier is claimed here.
 
 \bibliographystyle{plainnat}
 \bibliography{references}

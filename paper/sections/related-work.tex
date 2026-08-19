@@ -1,28 +1,62 @@
 \section{Related work}
 
-Conformal methods obtain finite-sample rank guarantees under exchangeability
-\citep{shafer2008tutorial}. For dependent observations, block and robust
-variants replace the literal permutation argument with assumptions about the
-dependence structure \citep{chernozhukov2018dependentconformal}. Outlier testing
-with conformal $p$-values makes the multiple-testing connection explicit and
-establishes useful dependence-aware FDR results \citep{bates2023conformaloutliers}.
-TRACE-C uses the rank construction as a diagnostic and states where telemetry
-violates its idealized conditions.
+\subsection{Rank calibration under dependence}
 
-The copula layer follows the separation of marginals and dependence introduced
-by Sklar's theorem \citep{sklar1959fonctions}; Gaussian-copula likelihoods give
-a compact relational score for the residual vector \citep{song2000gaussiancopula}.
-Fisher's combination statistic \citep{fisher1932statisticalmethods} and the
-Benjamini--Hochberg procedure \citep{benjamini1995fdr} are standard ways to
-combine evidence and select discoveries. Positive dependence and calibration
-reuse matter for the latter, motivating the explicit reference to the
-Benjamini--Yekutieli correction literature \citep{benjamini2001dependency}.
+Conformal prediction obtains finite-sample rank guarantees from symmetry or
+exchangeability arguments \citep{shafer2008tutorial}. Operational telemetry
+generally has seasonality, autocorrelation, and changing regimes, so a correct
+arithmetic rank formula does not by itself supply those assumptions. Methods
+for dependent data can instead use block permutations or related constructions
+under explicit dependence conditions \citep{chernozhukov2018dependentconformal}.
+TRACE-C does not implement the block method of
+\citet{chernozhukov2018dependentconformal}; the citation identifies a relevant
+alternative, not a theorem inherited by this implementation.
 
-The record rule is a transparent finite-history alternative to a nominal tail
-threshold; its expected count follows the classical record-value calculation
-\citep{renyi1962records}. Robust MAD scaling follows \citet{rousseeuw1993mad}.
-For comparison, we include a convolutional autoencoder
+Conformal outlier testing connects rank $p$-values to multiple testing and can
+obtain FDR guarantees in a setting with independent reference and test samples
+and a carefully characterized dependence structure \citep{bates2023conformaloutliers}.
+That reference/test setting does not validate TRACE-C's growing, reused online
+reference. Here the ranks are transparent selection statistics and the
+observed-versus-benchmark counts are empirical diagnostics.
+
+\subsection{Dependence scores and evidence aggregation}
+
+Sklar's theorem separates multivariate dependence from continuous marginals
+through probability-integral transforms \citep{sklar1959fonctions}. Gaussian
+copula models then express dependence through normal scores and a correlation
+matrix \citep{song2000gaussiancopula}. TRACE-C borrows the resulting quadratic
+contrast but applies it to robust-z residuals. The absence of the marginal
+transform is material: ``copula-form'' describes the algebra, not a fitted
+copula density.
+
+Fisher's statistic combines small $p$-values through a sum of log terms
+\citep{fisher1932statisticalmethods}. Its familiar chi-square calibration
+requires conditions not asserted for TRACE-C's dependent channel ranks. We use
+the construction only as an aggregation score and calibrate that score again
+by its online rank.
+
+Ordinary Benjamini--Hochberg (BH) controls FDR under independence and has known
+extensions under suitable positive dependence conditions
+\citep{benjamini1995fdr}. Those independence/PRDS conditions are not
+established here. General dependence motivates more conservative procedures
+such as Benjamini--Yekutieli \citep{benjamini2001dependency}, but TRACE-C does
+not implement that correction. Consequently, ``BH'' below means a nominal
+selection attempt, not demonstrated FDR control.
+
+\subsection{Robust scaling, records, and comparator families}
+
+Median and MAD scaling provides resistance to extreme observations
+\citep{rousseeuw1993mad}. The fallback rule selects a new upper record; under an
+exchangeable continuous sequence its expected number of records follows the
+classical harmonic calculation \citep{renyi1962records}. Serial dependence,
+ties, and drift prevent that expected count from being a guarantee in the
+present application.
+
+The post-hoc comparison represents four common anomaly-score families:
+nonlinear reconstruction by an autoencoder
 \citep{sakurada2014autoencoders,vijay2020kerasautoencoder}, PCA reconstruction
 residuals \citep{jackson1979pcaresiduals}, Isolation Forest
-\citep{liu2008isolationforest}, and Spectral Residual
-\citep{ren2019spectralresidual}.
+\citep{liu2008isolationforest}, and the Spectral Residual method
+\citep{ren2019spectralresidual}. These citations motivate the detector classes;
+the exact fitted configurations and online rank envelope are described in
+Section~\ref{sec:protocol}.
