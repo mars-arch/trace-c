@@ -6,17 +6,18 @@ never be hand-edited.
 
 ## Build
 
-From the repository root:
-
 ```bash
-bun run scripts/generate-paper-tables.ts
-latexmk -cd -pdf -interaction=nonstopmode -halt-on-error paper/main.tex
+make -C paper pdf     # regenerate evidence tables + latexmk → paper/main.pdf
+make -C paper check   # tables must be byte-identical to committed evidence
+make -C paper arxiv   # clean source bundle → paper/arxiv/trace-c-arxiv.tar.gz
+make -C paper clean
 ```
 
 The bibliography uses BibTeX (`natbib`/`plainnat`); `biber` is not required.
-Until package scripts are added, run these commands manually. The generated files are `paper/generated/results-table.tex`,
-`paper/generated/baseline-table.tex`, and
-`paper/generated/ablation-table.tex`.
+The generated files are `paper/generated/results-table.tex`,
+`paper/generated/baseline-table.tex`, and `paper/generated/ablation-table.tex`
+— evidence artifacts, never hand-edited (`make check` enforces this). LaTeX
+build artifacts are ignored via `paper/.gitignore`.
 
 This scaffold reflects evidence commit `88aa648` (`fix: align data fetcher
 with NESO licence`) and the original frozen evidence lineage

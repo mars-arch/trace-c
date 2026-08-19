@@ -1,0 +1,14 @@
+# LaTeX build artifacts (latexmk)
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+main.pdf
+# bundle output
+arxiv/trace-c-arxiv.tar.gz
+.DS_Store
