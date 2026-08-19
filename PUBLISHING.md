@@ -1,66 +1,52 @@
-# Publishing checklist — identity: Matthew Faucher only
+# Publishing checklist — byline: Matthew Faucher, from current accounts
 
-Decision (2026-08-19): all public TRACE-C artifacts are authored by
-**Matthew Faucher, independent researcher** — no other name, account, or
-project identity may appear in anything published. This file is the
-operational checklist; it is safe to keep in the private dev repo and must
-be EXCLUDED from any public snapshot.
+Decision (2026-08-19, revised same day): the paper byline is **Matthew
+Faucher, independent researcher**; publishing happens from the existing
+accounts (GitHub `mars-arch`, HF `mars2titan`, personal arXiv account). The
+byline↔account linkage is accepted deliberately — no pseudonymity machinery.
+This file stays in the repo (nothing in it is secret) but is not part of the
+arXiv bundle.
 
-## Identity rules
-
-- Byline, LICENSE, package metadata: Matthew Faucher (done in-tree).
-- The dev repo's git history is NOT publishable (author/email would link
-  identities). Publish a fresh single-commit snapshot, never a push of this
-  history.
-- Exclude from any snapshot: `PUBLISHING.md`, `docs/plans/` (contains local
-  machine paths), anything gitignored.
-- Accounts: create dedicated accounts (GitHub / arXiv / Hugging Face) under
-  the Faucher identity with a dedicated email address. Do NOT publish from
-  existing personal accounts — the linkage is permanent.
-
-## 1. Snapshot export (fresh history, Faucher-authored)
+## Pre-publication gate (run before any push/upload)
 
 ```bash
-cd "$(mktemp -d)" && mkdir trace-c && cd trace-c
-git -C /path/to/dev/repo archive HEAD | tar -x
-rm -rf PUBLISHING.md docs/plans
-git init -q
-git config user.name  "Matthew Faucher"
-git config user.email "<dedicated Faucher address>"
-git add -A && git commit -m "TRACE-C: reference implementation, evidence, and paper source"
-```
-
-Verify before pushing anywhere:
-
-```bash
-git grep -i -E "mars|heyamiko|icloud|/Users/" && echo LEAK || echo clean
+# local-machine paths and private-vault names must not ship
+git grep -n -E "/Users/|MARS BRAIN" -- ':!PUBLISHING.md' ':!docs/plans/*' && echo LEAK || echo clean
 bun test && make -C paper check && make -C paper pdf
 ```
 
+`docs/plans/` contains local paths by nature — either scrub it or exclude it
+from the public repo (`.gitignore` it before the public push, or keep it and
+accept that dev-machine paths are visible; they are paths, not secrets).
+
+## 1. GitHub
+
+- Push this repo (full history is fine — the disclosure ledger is on-brand)
+  to `github.com/mars-arch/trace-c`, public.
+- Tag the published state: `git tag publication-v1 && git push --tags`.
+
 ## 2. arXiv
 
-- Category: stat.AP (cross-list eess.SY).
-- New submitters in stat.* typically need an **endorsement** — arrange this
-  before planning a submission date.
+- Category: stat.AP (cross-list eess.SY). Submit from the personal account;
+  the byline is whatever the paper says.
+- New submitters in stat.* typically need an **endorsement** — this is tied
+  to the submitting account's history, so arrange it before planning a date.
 - Bundle: `make -C paper arxiv` → `paper/arxiv/trace-c-arxiv.tar.gz`
-  (includes `main.bbl`, so arXiv does not need to run BibTeX).
-- After acceptance, add the arXiv id to README and the availability
-  statement.
+  (includes `main.bbl`; arXiv does not need to run BibTeX).
 
-## 3. Hugging Face (dataset + optional baseline model)
+## 3. Hugging Face (`mars2titan`)
 
-- Dataset repo (Faucher account): aligned series export recipe, event
-  annotations, committed reports, fetch scripts. Licence: code MIT; data
-  redistributed under NESO Open Data Licence with the exact attribution
-  "Supported by National Energy SO Open Data".
-- Request a **DOI** on the dataset repo — this fills the paper's
-  "public archive URL and DOI are pending" availability statement.
-- Optional model repo: conv-AE baseline weights + tfevents (gives the hosted
-  Training-metrics tab). Must be clearly labelled as the paper's BASELINE,
-  not as TRACE-C.
+- Dataset repo: aligned series export recipe, event annotations, committed
+  reports, fetch scripts. Code MIT; data under the NESO Open Data Licence
+  with the exact attribution "Supported by National Energy SO Open Data".
+- Request a **DOI** on the dataset repo — it fills the paper's pending
+  availability statement.
+- Optional model repo: conv-AE baseline weights + tfevents (hosted
+  Training-metrics tab). Label clearly as the paper's BASELINE, not TRACE-C.
 
 ## 4. After publishing
 
-- Fill the availability statement in `paper/main.tex` (repo URL, DOI,
-  arXiv id) and rebuild; re-run `make -C paper check`.
-- Tag the dev repo commit the snapshot was cut from (`publication-vN`).
+- Fill the availability statement in `paper/main.tex` (repo URL, DOI, arXiv
+  id), rebuild, re-run `make -C paper check`.
+- Order: GitHub push → HF dataset + DOI → arXiv (so the availability
+  statement is complete in the submitted PDF).
