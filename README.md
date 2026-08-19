@@ -1,17 +1,61 @@
 # TRACE-C
 
-**Copula-calibrated temporal relational anomaly detection** for multi-stream
-operational telemetry — with rolling-conformal p-values empirically checked
-on real data, disclosed null assumptions and selection
-rules, and a frozen blind hold-out year.
+**Rank-calibrated relational anomaly detection** for multi-stream operational
+telemetry — strictly-prior scoring, rank diagnostics empirically checked on
+real data, disclosed null assumptions and selection rules, and a frozen blind
+hold-out year.
+
+The name is historical ("temporal relational anomaly detection with copula
+calibration"). The shipped dependence channel has the algebraic *form* of a
+Gaussian copula contrast but applies no probability-integral or normal-score
+transform, so it is not a literal copula density — and the 2019 ablation below
+shows the copula-form channel is not what ranks the storm. The paper uses the
+accurate name.
 
 > Rank unusual multi-stream windows, say which channel fired, and hand
 > evidence to a human — never a person-risk score.
+
+![TRACE-C aggregate score across the frozen 2020 hold-out year, with Storm Ciara, Storm Dennis and the COVID lockdown transition marked](assets/fig-holdout-timeline.png)
+
+<sub>The frozen 2020 hold-out: 4,392 windows, each scored against strictly
+prior references only, annotations added after ranking. Rendered from
+`paper/generated/fig-holdout-timeline.tex` by `scripts/render-readme-figures.sh`
+— the `.tex` is the evidence-bound artifact, the PNG is a presentation copy.</sub>
 
 The deterministic TypeScript core has zero runtime dependencies. Data
 aggregation uses Python's standard library. The optional external-baseline
 suite pins CPython and the direct NumPy, PyTorch, scikit-learn, and TensorBoard
 package versions used here.
+
+## Paper
+
+`paper/` holds the manuscript — *TRACE-C: Rank-Calibrated Relational Anomaly
+Detection for Multi-Stream Operational Telemetry* (Matthew Faucher), written for
+arXiv stat.AP. Every table and figure in it is generated from the committed
+reports under `data/reports/`, and `make -C paper check` fails if a generated
+file has drifted from its evidence.
+
+```bash
+make -C paper pdf      # regenerate tables/figures + latexmk → paper/main.pdf
+```
+
+Build targets and the arXiv bundle are documented in
+[`paper/README.md`](paper/README.md). arXiv link: *pending submission.* To cite
+the code and evidence package, see [`CITATION.cff`](CITATION.cff) — GitHub's
+"Cite this repository" button renders BibTeX from it.
+
+## Repository map
+
+| Path | Contents |
+|---|---|
+| `src/trace-c.ts` | detector core, generic over any aligned matrix, zero deps |
+| `src/real.ts`, `src/holdout.ts` | the GB grid evaluation: 2019 development run, frozen 2020 hold-out |
+| `src/ablation.ts`, `src/baselines-eval.ts`, `src/v3.ts` | channel ablation, external baselines, disclosed v3 preview |
+| `scripts/` | data fetch, aggregation, evaluation entry points, table/figure generators |
+| `data/reports/` | committed machine-readable evidence — every number on this page |
+| `paper/` | manuscript source; `paper/generated/` is written, never hand-edited |
+| `tests/` | Bun + Python tests, including artifact-provenance checks |
+| `assets/` | PNG renders of the paper figures, for this page only |
 
 ## Method
 
@@ -19,8 +63,7 @@ For aligned multi-stream series (`src/trace-c.ts`, generic over any matrix):
 
 1. **Marginals** — rolling regime-conditioned robust-z: `(v − median)/(1.4826·MAD)`
    over the last K same-regime observations, strictly prior, clipped ±10.
-   Magnitude-preserving: a rank-PIT marginal clips z at ±Φ⁻¹((K+½)/(K+1)),
-   destroying deep-tail power (a 30σ excursion ties a barely-record reading).
+   This preserves magnitude, which a rank-PIT marginal cannot.[^rankpit]
 2. **Channels** per non-overlapping window:
    *local* (max stream |Σz/√W|), *copula* (Gaussian copula-form dependence
    score on robust-z residuals, Σ̂ fitted on the train segment — joint surprise
@@ -28,11 +71,11 @@ For aligned multi-stream series (`src/trace-c.ts`, generic over any matrix):
    (worst AR(1) innovation),
    plus optional extra channels.
 3. **Rank normalization** — each channel scored as a rank-p against a
-   **trailing window of strictly-prior windows**. This kills two validity
-   killers at once: seasonal drift (a fixed calibration block is not
-   exchangeable with a drifting test period) and self-inclusion bias
-   (ranking a window against a set containing itself is anti-conservative
-   once channels are combined — verified by simulation, 1.48× at 3 channels).
+   **trailing window of strictly-prior windows**. This addresses two validity
+   problems at once: seasonal drift (a fixed calibration block is not
+   exchangeable with a drifting test period) and self-inclusion bias (ranking
+   a window against a set containing itself is anti-conservative once channels
+   are combined).[^selfinclusion]
 4. **Combination** — S = Fisher over channel rank-p's. Rank-based ⇒ S is
    more stable over time; S is then ranked against the **growing set of all
    strictly-prior S values**. The finite-sample rank formula is exact and never
@@ -108,9 +151,17 @@ and an unbudgeted record rule.
 
 The result is deliberately mixed: simple reconstruction isolates the short
 blackout much better, TRACE-C ranks Atiyah first for local (not copula)
-reasons, and TRACE-C has the most stable empirical rank counts. PCA and Spectral Residual are visibly
-anti-conservative pre-COVID under their regime-naive global references. Event
-ranks also have unequal opportunity counts (blackout 5 windows, Atiyah 12,
+reasons, and TRACE-C has the most stable empirical rank counts. PCA and
+Spectral Residual are visibly anti-conservative pre-COVID under their
+regime-naive global references.
+
+![Observed versus reference rank counts at p≤.05 and p≤.01 for all five detectors, 2019 and pre-COVID 2020](assets/fig-rank-diagnostics.png)
+
+<sub>Observed versus reference counts under the shared scoring envelope; bars
+above the reference are anti-conservative. Rendered from
+`paper/generated/fig-rank-diagnostics.tex`.</sub>
+
+Event ranks also have unequal opportunity counts (blackout 5 windows, Atiyah 12,
 each two-day storm 24, lockdown transition 168); the Isolation Forest lockdown
 rank 1 occurs on 5 April, not on 23 March. See
 `data/reports/baselines-report.json` for best-window dates, assumptions, counts,
@@ -140,6 +191,9 @@ reports' `honesty_note`:
 
 ## Reproduce
 
+Prerequisites: [Bun](https://bun.sh) 1.3.11 (pinned in `engines`) for the core;
+the optional baseline suite additionally needs CPython 3.13.1.
+
 ```bash
 bun install            # frozen dependency lock; Bun 1.3.11
 bash scripts/fetch-data.sh    # ~150MB transient downloads (NESO Open Data Licence) → ~4MB kept
@@ -150,7 +204,7 @@ bun run check:core     # Bun tests + types + full evidence provenance
 To retrain every baseline and regenerate its score artifact:
 
 ```bash
-python3 --version      # must match the exact version in .python-version
+python3 --version      # must be 3.13.1, the exact version in .python-version
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements-baselines.txt
@@ -179,11 +233,19 @@ recorded in each score artifact.
 
 ## Provenance
 
-Research reference implementation of TRACE-C (copula-calibrated temporal
-relational anomaly detection) with a frozen blind hold-out protocol on public
-grid telemetry. Method notes and result tables above match the committed
+Research reference implementation of TRACE-C (rank-calibrated relational
+anomaly detection, historically "temporal relational anomaly detection with
+copula calibration") with a frozen blind hold-out protocol on public grid
+telemetry. Method notes and result tables above match the committed
 reports under `data/reports/`.
 
 Data © NESO, NESO Open Data Licence.
 Supported by National Energy SO Open Data.
 Code © Matthew Faucher, MIT License (see `LICENSE`).
+
+[^rankpit]: A rank-PIT marginal clips z at ±Φ⁻¹((K+½)/(K+1)), so it destroys
+    deep-tail power: a 30σ excursion ties a barely-record reading. Derivation in
+    `paper/sections/method.tex`.
+
+[^selfinclusion]: Measured by simulation at 1.48× the nominal rate with three
+    channels combined; recorded in `data/reports/trace-c-real-report.json`.

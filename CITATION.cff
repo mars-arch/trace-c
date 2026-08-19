@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software or the evidence package, please cite it as below."
+title: "TRACE-C: rank-calibrated relational anomaly detection for multi-stream operational telemetry"
+type: software
+authors:
+  - family-names: Faucher
+    given-names: Matthew
+    orcid: https://orcid.org/0009-0005-5238-731X
+version: 0.1.0
+date-released: '2026-08-19'
+license: MIT
+abstract: >-
+  Strictly-prior rank-calibrated anomaly detection over aligned multi-stream
+  telemetry, with an evidence-bound reporting chain: rolling robust-z
+  marginals, local/dependence/temporal channels, Fisher rank aggregation,
+  disclosed selection rules with exchangeable-null reference counts, a frozen
+  blind 2020 hold-out on public GB grid data, and committed machine-readable
+  reports that bind the paper's tables and figures.
+keywords:
+  - anomaly detection
+  - conformal prediction
+  - multivariate time series
+  - calibration
+  - reproducibility
+# DOI and repository-code URL to be added at publication (see PUBLISHING.md).

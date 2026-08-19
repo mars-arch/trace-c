@@ -5,7 +5,7 @@
   "license": "MIT",
   "author": "Matthew Faucher",
   "type": "module",
-  "description": "TRACE-C \u2014 copula-calibrated temporal relational anomaly detection with rolling-conformal p-values, validated on real GB grid telemetry (NESO Open Data Licence; Supported by National Energy SO Open Data) with a frozen blind hold-out year",
+  "description": "TRACE-C \u2014 rank-calibrated relational anomaly detection for multi-stream operational telemetry: strictly-prior scoring, disclosed selection rules, and a frozen blind hold-out year on real GB grid telemetry (NESO Open Data Licence; Supported by National Energy SO Open Data)",
   "keywords": [
     "anomaly-detection",
     "conformal-prediction",

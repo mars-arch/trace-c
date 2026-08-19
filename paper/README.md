@@ -15,9 +15,13 @@ make -C paper clean
 
 The bibliography uses BibTeX (`natbib`/`plainnat`); `biber` is not required.
 The generated files are `paper/generated/results-table.tex`,
-`paper/generated/baseline-table.tex`, and `paper/generated/ablation-table.tex`
-— evidence artifacts, never hand-edited (`make check` enforces this). LaTeX
-build artifacts are ignored via `paper/.gitignore`.
+`paper/generated/baseline-table.tex`, `paper/generated/ablation-table.tex`,
+`paper/generated/fig-rank-diagnostics.tex`, and
+`paper/generated/fig-holdout-timeline.tex` — evidence artifacts, never
+hand-edited (`make check` enforces this). Figures are plain TikZ (no
+`pgfplots`); `scripts/render-readme-figures.sh` renders PNG copies of them into
+`assets/` for the repository README. LaTeX build artifacts are ignored via
+`paper/.gitignore`.
 
 This scaffold reflects evidence commit `88aa648` (`fix: align data fetcher
 with NESO licence`) and the original frozen evidence lineage

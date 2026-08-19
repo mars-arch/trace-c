@@ -23,7 +23,7 @@ figures:
 # Generated tables are evidence artifacts: regenerating from the committed
 # JSON reports must be a no-op. A diff here means the tables were hand-edited
 # or the reports changed without regenerating — both are failures.
-check: tables
+check: tables figures
 	git diff --exit-code -- generated/
 
 arxiv: pdf
