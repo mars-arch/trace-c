@@ -28,7 +28,10 @@ import {
   PIT_K,
   REAL_CSV,
   REAL_STREAMS,
+  reportProvenance,
+  verifyPinnedSourceInputs,
   WINDOW,
+  type ReportProvenance,
   type RealSeries,
 } from "./real";
 
@@ -36,6 +39,13 @@ const root = join(import.meta.dir, "..");
 export const DEMAND_2020 = join(root, "data/real/neso-demand-2020.csv");
 export const FREQ_2020 = join(root, "data/real/neso-frequency-2020-agg.csv");
 export const HOLDOUT_REPORT = join(root, "data/reports/trace-c-holdout-report.json");
+
+export function holdoutReportProvenance(evidenceRoot = root): ReportProvenance {
+  return reportProvenance(
+    ["src/trace-c.ts", "src/real.ts", "src/holdout.ts"],
+    evidenceRoot
+  );
+}
 
 export const KNOWN_EVENTS_2020 = [
   {
@@ -71,16 +81,17 @@ export const KNOWN_EVENTS_2020 = [
 ] as const;
 
 export function runHoldout2020() {
-  if (!existsSync(DEMAND_2020)) {
-    return { error: "2020 demand file missing", hint: "download demanddata_2020.csv into data/real/" };
-  }
+  verifyPinnedSourceInputs();
   const series: RealSeries = loadRealSeries([
     { demand: REAL_CSV, freqAgg: FREQ_AGG_CSV },
     { demand: DEMAND_2020, freqAgg: FREQ_2020 },
   ]);
+  if (!series.freq_available || series.streams[FREQ_STREAM]?.length !== series.n) {
+    throw new Error(`2020 evidence generation requires the verified ${FREQ_STREAM} stream`);
+  }
   const trainEnd = series.dates.findIndex((d) => d >= "2019-05-01");
   const calEnd = series.dates.findIndex((d) => d >= "2019-07-01");
-  const names = series.freq_available ? [...REAL_STREAMS, FREQ_STREAM] : [...REAL_STREAMS];
+  const names = [...REAL_STREAMS, FREQ_STREAM];
 
   // FROZEN configuration — must match trace-c-real.ts's variant() exactly.
   const res: TraceCResult = runTraceC({
@@ -198,7 +209,7 @@ export function runHoldout2020() {
   for (const t of top_ranked) detailWs.add(t.w);
 
   return {
-    generated_at: new Date().toISOString(),
+    provenance: holdoutReportProvenance(),
     frozen_note:
       "HOLD-OUT: method and configuration are byte-identical to the 2019 run (commit-frozen). Nothing about 2020 — data, events, results — informed any hyperparameter, sensor, marginal or selection-rule choice. Copula/AR fitted Jan–Apr 2019; rolling references trail across the year boundary; all of 2020 is scored blind. 2020 event labels are post-hoc annotations only.",
     covid_note:
@@ -236,7 +247,14 @@ export function loadOrBuildHoldoutReport(force = false) {
       /* rebuild */
     }
   }
-  const report = runHoldout2020();
-  if (!("error" in report)) writeFileSync(HOLDOUT_REPORT, JSON.stringify(report, null, 2));
-  return report;
+  try {
+    const report = runHoldout2020();
+    if (!("error" in report)) writeFileSync(HOLDOUT_REPORT, JSON.stringify(report, null, 2));
+    return report;
+  } catch (error) {
+    return {
+      error: "TRACE-C 2020 evidence generation failed closed",
+      hint: error instanceof Error ? error.message : String(error),
+    };
+  }
 }

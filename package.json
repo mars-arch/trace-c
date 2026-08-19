@@ -24,23 +24,26 @@
     "trace-c"
   ],
   "engines": {
-    "bun": ">=1.3.11"
+    "bun": "1.3.11"
   },
   "scripts": {
     "fetch": "bash scripts/fetch-data.sh",
+    "verify:data": "python3 scripts/verify_source_data.py",
     "export:series": "bun run scripts/export-series.ts",
-    "train:baselines": "python3 scripts/train_baselines.py",
+    "train:baselines": "${BASELINE_PYTHON:-python3} scripts/train_baselines.py",
     "eval:real": "bun run scripts/eval-real.ts",
     "eval:holdout": "bun run scripts/eval-holdout.ts",
     "eval:baselines": "bun run export:series && bun run scripts/eval-baselines.ts",
     "eval": "bun run eval:real && bun run eval:holdout && bun run eval:baselines",
-    "baselines": "bun run export:series && bun run train:baselines && bun run scripts/eval-baselines.ts",
-    "tb:baselines": "python3 scripts/log_tensorboard.py",
+    "baselines": "bun run train:baselines && bun run scripts/eval-baselines.ts",
+    "tb:baselines": "${TENSORBOARD_PYTHON:-python3} scripts/log_tensorboard.py",
     "test:ts": "bun test",
     "test:py": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py'",
     "test": "bun run test:ts && bun run test:py",
     "typecheck": "tsc -p tsconfig.json",
-    "check": "bun run test && bun run typecheck"
+    "verify:artifacts": "bun run scripts/verify-artifacts.ts",
+    "check:core": "bun run test:ts && bun run typecheck && bun run verify:artifacts",
+    "check": "bun run check:core && bun run test:py"
   },
   "devDependencies": {
     "@types/bun": "1.3.14",

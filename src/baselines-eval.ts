@@ -15,6 +15,20 @@ import { basename, join } from "path";
 
 const root = join(import.meta.dir, "..");
 
+export function baselineTrainerSources(projectRoot = root): string[] {
+  return [
+    join(projectRoot, "scripts/baseline_models.py"),
+    join(projectRoot, "scripts/runtime_environment.py"),
+    join(projectRoot, "scripts/train_baselines.py"),
+    join(projectRoot, "requirements-baselines.txt"),
+    join(projectRoot, ".python-version"),
+    join(projectRoot, "scripts/export-series.ts"),
+    join(projectRoot, "src/real.ts"),
+    join(projectRoot, "src/holdout.ts"),
+    join(projectRoot, "data/source-checksums.json"),
+  ];
+}
+
 export type SeriesExport = {
   n: number;
   window_size: number;
@@ -59,8 +73,44 @@ export type BaselineScoreArtifact = {
   trainer_sha256: string;
   series_sha256: string;
   n_windows: number;
+  versions?: Record<string, string>;
   scores: Record<string, (number | null)[]>;
 };
+
+export type PinnedRuntimeVersions = {
+  python: string;
+  numpy: string;
+  torch: string;
+  scikit_learn: string;
+};
+
+export function loadPinnedRuntimeVersions(projectRoot = root): PinnedRuntimeVersions {
+  const python = readFileSync(join(projectRoot, ".python-version"), "utf8").trim();
+  if (!/^\d+\.\d+\.\d+$/.test(python)) {
+    throw new Error(".python-version must contain one exact X.Y.Z version");
+  }
+  const requirements = readFileSync(
+    join(projectRoot, "requirements-baselines.txt"),
+    "utf8"
+  );
+  const pins = new Map<string, string>();
+  for (const raw of requirements.split(/\r?\n/)) {
+    const line = raw.split("#", 1)[0]!.trim();
+    const match = /^([A-Za-z0-9_.-]+)\s*==\s*([^\s;]+)$/.exec(line);
+    if (match) pins.set(match[1]!.toLowerCase().replace(/[_.]+/g, "-"), match[2]!);
+  }
+  const requirePin = (name: string) => {
+    const value = pins.get(name);
+    if (!value) throw new Error(`requirements-baselines.txt must exactly pin ${name}`);
+    return value;
+  };
+  return {
+    python,
+    numpy: requirePin("numpy"),
+    torch: requirePin("torch"),
+    scikit_learn: requirePin("scikit-learn"),
+  };
+}
 
 export function assertBaselineScoreArtifactCurrent(
   artifact: BaselineScoreArtifact,
@@ -68,6 +118,7 @@ export function assertBaselineScoreArtifactCurrent(
     trainerSha256: string;
     seriesSha256: string;
     expectedWindows: number;
+    runtimeVersions?: PinnedRuntimeVersions;
   }
 ): void {
   if (artifact.schema_version !== 2) {
@@ -82,13 +133,21 @@ export function assertBaselineScoreArtifactCurrent(
   if (artifact.n_windows !== current.expectedWindows) {
     throw new Error("baseline scores are stale: window count changed");
   }
+  if (
+    current.runtimeVersions &&
+    Object.entries(current.runtimeVersions).some(
+      ([name, version]) => artifact.versions?.[name] !== version
+    )
+  ) {
+    throw new Error("baseline scores are stale: runtime environment changed");
+  }
 }
 
-function sha256File(path: string): string {
+export function sha256File(path: string): string {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
 }
 
-function sha256Implementation(paths: string[]): string {
+export function sha256Implementation(paths: string[]): string {
   const hash = createHash("sha256");
   for (const path of paths) {
     hash.update(basename(path));
@@ -200,12 +259,10 @@ export function evaluateBaselines() {
   ) as BaselineScoreArtifact;
 
   assertBaselineScoreArtifactCurrent(scoresFile, {
-    trainerSha256: sha256Implementation([
-      join(root, "scripts/baseline_models.py"),
-      join(root, "scripts/train_baselines.py"),
-    ]),
+    trainerSha256: sha256Implementation(baselineTrainerSources()),
     seriesSha256: sha256File(seriesPath),
     expectedWindows: Math.floor(exp.n / exp.window_size),
+    runtimeVersions: loadPinnedRuntimeVersions(),
   });
 
   const W = exp.window_size;

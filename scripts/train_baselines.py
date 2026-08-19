@@ -15,29 +15,67 @@ Baselines (deliberately the standard practitioner picks):
 All use GLOBAL per-stream train standardization (no regime conditioning) —
 that naivety is part of what the comparison measures.
 
-Inputs : data/real/series-export.json   (written by scripts/export-series.ts)
+Inputs : verified NESO inputs; scripts/export-series.ts refreshes the aligned
+         data/real/series-export.json before model libraries are imported.
 Outputs: data/reports/baseline-scores.json
          data/reports/ae-training-history.json  (loss curves + weight snapshots)
 
 Run with a python that has torch + sklearn + numpy, e.g.:
   /Library/Frameworks/Python.framework/Versions/3.13/bin/python3 scripts/train_baselines.py
+Use --preflight-only to verify runtime/raw inputs and refresh the export.
 """
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import platform
+import subprocess
+import sys
 from pathlib import Path
 
+from runtime_environment import validate_runtime_environment
+
+ROOT = Path(__file__).resolve().parents[1]
+# Fail before importing model libraries, reading data, or starting training.
+RUNTIME_VERSIONS = validate_runtime_environment(ROOT)
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--preflight-only",
+    action="store_true",
+    help="verify pinned runtime/raw inputs and refresh the aligned series, then exit",
+)
+ARGS = parser.parse_args()
+
+# The TypeScript exporter is the only allowed raw-data parser. Running it here
+# makes the direct trainer entry point as fail-closed as `bun run baselines`:
+# all four raw inputs are checksum-verified and the cached aligned series is
+# refreshed before either evidence output can be touched.
+export_result = subprocess.run(
+    ["bun", "run", "scripts/export-series.ts"],
+    cwd=ROOT,
+    capture_output=True,
+    text=True,
+    check=False,
+)
+if export_result.stdout:
+    print(export_result.stdout, end="")
+if export_result.returncode != 0:
+    if export_result.stderr:
+        print(export_result.stderr, end="", file=sys.stderr)
+    raise SystemExit(export_result.returncode)
+if ARGS.preflight_only:
+    print("baseline training preflight verified")
+    raise SystemExit(0)
+
 import numpy as np
-import sklearn
 import torch
 import torch.nn as nn
 from sklearn.ensemble import IsolationForest
 
 from baseline_models import spectral_residual_window_scores, temporal_sequence_starts
 
-ROOT = Path(__file__).resolve().parents[1]
 SEED = 42
 SEQ = 48  # one day of half-hourly periods
 EPOCHS = 40
@@ -74,7 +112,17 @@ if not np.isfinite(Z).all():
 
 def implementation_sha256() -> str:
     digest = hashlib.sha256()
-    for path in (ROOT / "scripts/baseline_models.py", Path(__file__).resolve()):
+    for path in (
+        ROOT / "scripts/baseline_models.py",
+        ROOT / "scripts/runtime_environment.py",
+        Path(__file__).resolve(),
+        ROOT / "requirements-baselines.txt",
+        ROOT / ".python-version",
+        ROOT / "scripts/export-series.ts",
+        ROOT / "src/real.ts",
+        ROOT / "src/holdout.ts",
+        ROOT / "data/source-checksums.json",
+    ):
         digest.update(path.name.encode())
         digest.update(b"\0")
         digest.update(path.read_bytes())
@@ -85,10 +133,9 @@ def implementation_sha256() -> str:
 SERIES_SHA256 = hashlib.sha256(series_bytes).hexdigest()
 TRAINER_SHA256 = implementation_sha256()
 VERSIONS = {
-    "python": platform.python_version(),
-    "numpy": np.__version__,
-    "torch": torch.__version__,
-    "scikit_learn": sklearn.__version__,
+    **RUNTIME_VERSIONS,
+    "platform": platform.system(),
+    "machine": platform.machine(),
 }
 
 

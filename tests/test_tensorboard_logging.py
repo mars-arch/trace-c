@@ -1,6 +1,17 @@
 import unittest
+from pathlib import Path
+from subprocess import CompletedProcess
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
-from scripts.log_tensorboard import log_baseline_tensorboard
+import scripts.log_tensorboard as tensorboard_logging
+
+from scripts.log_tensorboard import (
+    default_run_dir,
+    log_baseline_tensorboard,
+    validate_tensorboard_inputs,
+    verify_committed_artifacts,
+)
 
 
 class RecordingWriter:
@@ -61,6 +72,54 @@ class TensorBoardLoggingTest(unittest.TestCase):
             writer.scalars,
         )
         self.assertEqual(writer.text, [("comparison/protocol", "strictly-prior test protocol", 0)])
+
+    def test_rejects_history_from_a_different_trainer(self):
+        history = {"trainer_sha256": "trainer-a", "series_sha256": "series-a"}
+        scores = {"trainer_sha256": "trainer-b", "series_sha256": "series-a"}
+        report = {
+            "score_artifact": {
+                "trainer_sha256": "trainer-b",
+                "series_sha256": "series-a",
+            }
+        }
+
+        with self.assertRaisesRegex(ValueError, "training history trainer provenance mismatch"):
+            validate_tensorboard_inputs(history, scores, report)
+
+    def test_default_runs_are_isolated_below_an_artifact_named_directory(self):
+        path = default_run_dir(Path("runs"), "abcdef1234567890", "20260819T120000Z-42")
+
+        self.assertEqual(path, Path("runs/abcdef123456-20260819T120000Z-42"))
+
+    def test_refuses_to_log_when_full_report_verification_fails(self):
+        failed = CompletedProcess(
+            args=["bun"],
+            returncode=1,
+            stdout="",
+            stderr="baseline comparison report body is stale or tampered",
+        )
+        with patch("scripts.log_tensorboard.subprocess.run", return_value=failed):
+            with self.assertRaisesRegex(
+                SystemExit, "baseline comparison report body is stale or tampered"
+            ):
+                verify_committed_artifacts(Path("."))
+
+    def test_explicit_logdir_claim_is_exclusive_until_released(self):
+        claim_logdir = getattr(tensorboard_logging, "claim_explicit_logdir", None)
+        self.assertTrue(callable(claim_logdir), "atomic logdir claim helper is missing")
+
+        with TemporaryDirectory() as tmp:
+            logdir = Path(tmp) / "existing-empty-run"
+            logdir.mkdir()
+            first_claim = claim_logdir(logdir)
+            try:
+                with self.assertRaisesRegex(SystemExit, "already claimed"):
+                    claim_logdir(logdir)
+            finally:
+                first_claim.unlink()
+
+            second_claim = claim_logdir(logdir)
+            second_claim.unlink()
 
 
 if __name__ == "__main__":

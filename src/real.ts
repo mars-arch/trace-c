@@ -15,12 +15,85 @@
  * report for which choices were test-informed on 2019).
  */
 import { readFileSync, writeFileSync, existsSync } from "fs";
+import { createHash } from "crypto";
 import { join } from "path";
 import { runTraceC, type TraceCResult } from "./trace-c";
 
 const root = join(import.meta.dir, "..");
 export const REAL_CSV = join(root, "data/real/neso-demand-2019.csv");
 export const REAL_REPORT = join(root, "data/reports/trace-c-real-report.json");
+
+export const PINNED_SOURCE_FILES = [
+  "data/real/neso-demand-2019.csv",
+  "data/real/neso-demand-2020.csv",
+  "data/real/neso-frequency-2019-agg.csv",
+  "data/real/neso-frequency-2020-agg.csv",
+] as const;
+
+type SourceManifest = {
+  schema_version: number;
+  files: Record<string, { bytes: number; sha256: string }>;
+};
+
+function sha256(data: Uint8Array): string {
+  return createHash("sha256").update(data).digest("hex");
+}
+
+function sha256File(path: string): string {
+  return sha256(readFileSync(path));
+}
+
+/** Fail closed unless every retained raw input matches the pinned manifest. */
+export function verifyPinnedSourceInputs(evidenceRoot = root): void {
+  const manifestPath = join(evidenceRoot, "data/source-checksums.json");
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as SourceManifest;
+  if (manifest.schema_version !== 1) {
+    throw new Error(`unsupported source checksum manifest schema: ${manifest.schema_version}`);
+  }
+  for (const relative of PINNED_SOURCE_FILES) {
+    const expected = manifest.files?.[relative];
+    if (!expected) throw new Error(`${relative} is missing from the pinned source manifest`);
+    const path = join(evidenceRoot, relative);
+    if (!existsSync(path)) throw new Error(`${relative} is missing`);
+    const bytes = readFileSync(path);
+    if (bytes.byteLength !== expected.bytes) {
+      throw new Error(
+        `${relative} size mismatch: expected ${expected.bytes}, received ${bytes.byteLength}`
+      );
+    }
+    const actual = sha256(bytes);
+    if (actual !== expected.sha256) {
+      throw new Error(
+        `${relative} sha256 mismatch: expected ${expected.sha256}, received ${actual}`
+      );
+    }
+  }
+}
+
+export type ReportProvenance = {
+  schema_version: 1;
+  generator_sources_sha256: Record<string, string>;
+  source_manifest_sha256: string;
+};
+
+export function reportProvenance(
+  relativeSources: readonly string[],
+  evidenceRoot = root
+): ReportProvenance {
+  return {
+    schema_version: 1,
+    generator_sources_sha256: Object.fromEntries(
+      [...relativeSources]
+        .sort()
+        .map((relative) => [relative, sha256File(join(evidenceRoot, relative))])
+    ),
+    source_manifest_sha256: sha256File(join(evidenceRoot, "data/source-checksums.json")),
+  };
+}
+
+export function realReportProvenance(evidenceRoot = root): ReportProvenance {
+  return reportProvenance(["src/trace-c.ts", "src/real.ts"], evidenceRoot);
+}
 
 export const REAL_STREAMS = [
   "ND",
@@ -131,6 +204,13 @@ export function loadRealSeries(
   return { n: dates.length, dates, periods, regime, streams, freq_available, freq_filled_cells };
 }
 
+function requireFrequencyForEvidence(series: RealSeries, label: string): void {
+  const frequency = series.streams[FREQ_STREAM];
+  if (!series.freq_available || !frequency || frequency.length !== series.n) {
+    throw new Error(`${label} evidence generation requires the verified ${FREQ_STREAM} stream`);
+  }
+}
+
 export const KNOWN_EVENTS = [
   {
     id: "GB-BLACKOUT-2019-08-09",
@@ -167,7 +247,9 @@ function boundary(dates: string[], firstDateInclusive: string): number {
 }
 
 export function runRealTraceC() {
+  verifyPinnedSourceInputs();
   const series = loadRealSeries();
+  requireFrequencyForEvidence(series, "2019");
   const trainEnd = boundary(series.dates, "2019-05-01");
   const calEnd = boundary(series.dates, "2019-07-01");
 
@@ -348,9 +430,14 @@ export function runRealTraceC() {
   const testDays = new Set(
     res.windows.filter((x) => x.segment === "test").map((x) => series.dates[x.t0]!)
   ).size;
+  const blackout = known_events.find((e) => e.id === "GB-BLACKOUT-2019-08-09")!;
+  const blackoutRankPct = (
+    (100 * blackout.best_rank_of_scored_test_windows!) /
+    blackout.total_test_windows
+  ).toFixed(1);
 
   return {
-    generated_at: new Date().toISOString(),
+    provenance: realReportProvenance(),
     source: {
       dataset: "NESO Historic Demand Data 2019 (half-hourly GB grid telemetry)",
       file: "data/real/neso-demand-2019.csv",
@@ -376,7 +463,7 @@ export function runRealTraceC() {
       `conformal granularity cannot support BH — selection field says which ran; hard budget ` +
       `${BUDGET} alerts/day. Test = Jul–Dec.`,
     honesty_note:
-      "The detector was never shown the 2019-08-09 event during fitting: copula/AR fit ends 30 Apr and all rank references are strictly prior to each scored window. Known-event labels are used ONLY for post-hoc annotation. DISCLOSED SELECTION: W=4 and K=40 came from a small sweep (K∈{20,40}×W∈{2,4}) scored partly on the known event — production must fix them on train/cal only. HONEST RESULT: with valid calibration (see calibration_check — observed ≈ expected at every level) the blackout's best window ranks in the top ~3% of blind test windows but is NOT separable from background at operational alert levels: half-hourly demand-side aggregates carry only the shadow of the event; the separating stream (grid frequency) is not in this dataset. An earlier draft of this report claimed the event was 'alerted blind' — that came from a miscalibrated fixed calibration block (seasonal drift made conformal p ~20× anti-conservative) and is retracted. SENSOR-CHOICE DISCLOSURE: the FREQ_MAX_ABS_DEV stream was added AFTER the demand-only analysis showed non-separability — an event-informed choice of sensor (the demand-only run ships in `comparison`). MARGINAL-CHOICE DISCLOSURE: marginals were switched from rank-PIT to magnitude-preserving rolling robust-z after rank tail-clipping was identified (also event-informed; validity is unaffected — the conformal layer operates on channel ranks — and the calibration_check verifies it empirically). Under the final method the 2019-08-09 blackout remains non-separable at 30-min aggregation (a ~40-minute transient inside half-hourly means), while Storm Atiyah — a sustained day-long multi-stream extreme, never used in any tuning — is detected blind at rank 1. The detector itself never sees event labels; the lesson is that detection is a property of the sensor set and aggregation resolution as much as the algorithm.",
+      `The copula/AR fit ends 30 Apr and every rank reference is strictly prior to its scored window; event labels are used only for post-hoc annotation inside the detector. DISCLOSED SELECTION: W=4 and K=40 came from a small sweep (K∈{20,40}×W∈{2,4}) scored partly on the known blackout — production must fix them on train/cal only. EMPIRICAL RESULT: the blackout's best window ranks in the top ~${blackoutRankPct}% of 2019 development windows and is not separable at the operational alert rule. The final six-stream run does include FREQ_MAX_ABS_DEV, added after the demand-only analysis showed non-separability; even so, a W=4 two-hour window does not isolate this short event from sustained background extremes. The demand-only result ships in comparison. An earlier draft claimed the event was 'alerted blind'; that came from a miscalibrated fixed reference block (seasonal drift made its rank scores ~20× anti-conservative) and is retracted. MARGINAL-CHOICE DISCLOSURE: marginals were switched from rank-PIT to magnitude-preserving rolling robust-z after rank tail-clipping was identified, also an event-informed choice. The strictly-prior empirical rank counts are close to their exchangeable-null references in calibration_check, but that is a diagnostic rather than a distribution-free proof for seasonal, autocorrelated telemetry. Storm Atiyah, a sustained day-long extreme not used in tuning, ranks 1 and triggers the record alert. The detector itself never consumes event labels; the lesson is that detection depends on the sensor set and aggregation resolution as much as on the algorithm.`,
     config: {
       ...res.config,
       splits: { train: "2019-01-01..04-30", cal: "2019-05-01..06-30", test: "2019-07-01..12-31" },
@@ -407,13 +494,14 @@ export function loadOrBuildRealReport(force = false) {
       /* rebuild */
     }
   }
-  if (!existsSync(REAL_CSV)) {
+  try {
+    const report = runRealTraceC();
+    writeFileSync(REAL_REPORT, JSON.stringify(report, null, 2));
+    return report;
+  } catch (error) {
     return {
-      error: "real dataset missing",
-      hint: "curl -sL 'https://api.neso.energy/dataset/8f2fe0af-871c-488d-8bad-960426f24601/resource/dd9de980-d724-415a-b344-d8ae11321432/download/demanddata_2019.csv' -o data/real/neso-demand-2019.csv",
+      error: "TRACE-C 2019 evidence generation failed closed",
+      hint: error instanceof Error ? error.message : String(error),
     };
   }
-  const report = runRealTraceC();
-  writeFileSync(REAL_REPORT, JSON.stringify(report, null, 2));
-  return report;
 }

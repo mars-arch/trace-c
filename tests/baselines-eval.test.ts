@@ -99,4 +99,34 @@ describe("assertBaselineScoreArtifactCurrent", () => {
       })
     ).toThrow("baseline scores are stale: trainer implementation changed");
   });
+
+  test("rejects artifacts produced by a runtime outside the exact pins", () => {
+    const artifact = {
+      schema_version: 2,
+      trainer_sha256: "current-trainer",
+      series_sha256: "series-v1",
+      n_windows: 2,
+      versions: {
+        python: "0.0.0",
+        numpy: "0.0.0",
+        torch: "0.0.0",
+        scikit_learn: "0.0.0",
+      },
+      scores: { detector: [1, 2] },
+    };
+
+    expect(() =>
+      assertBaselineScoreArtifactCurrent(artifact, {
+        trainerSha256: "current-trainer",
+        seriesSha256: "series-v1",
+        expectedWindows: 2,
+        runtimeVersions: {
+          python: "3.13.1",
+          numpy: "2.2.6",
+          torch: "2.12.0",
+          scikit_learn: "1.6.1",
+        },
+      })
+    ).toThrow("baseline scores are stale: runtime environment changed");
+  });
 });

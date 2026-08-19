@@ -14,9 +14,11 @@ import {
   loadRealSeries,
   REAL_CSV,
   REAL_STREAMS,
+  verifyPinnedSourceInputs,
 } from "../src/real";
 import { DEMAND_2020, FREQ_2020 } from "../src/holdout";
 
+verifyPinnedSourceInputs();
 const series = loadRealSeries([
   { demand: REAL_CSV, freqAgg: FREQ_AGG_CSV },
   { demand: DEMAND_2020, freqAgg: FREQ_2020 },

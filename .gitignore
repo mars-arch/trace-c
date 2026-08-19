@@ -9,6 +9,5 @@ __pycache__/
 *.log
 .agents/
 skills-lock.json
-.python-version
 *.egg-info/
 dist/

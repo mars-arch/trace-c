@@ -1,5 +1,13 @@
 {
-  "generated_at": "2026-08-19T04:26:02.902Z",
+  "provenance": {
+    "schema_version": 1,
+    "generator_sources_sha256": {
+      "src/holdout.ts": "2ec74767211fc5c1b64693348f65803a1d4750ffaf04df47334fa5a7dae669d8",
+      "src/real.ts": "765c8d23d3cc7675a54325de5aa81bd174da81c4a551deb3a519871bac23d1b0",
+      "src/trace-c.ts": "f5be771b4029d0b71a362a48d2214f212d880a6e9099e4aeda3eaa33dacdcc04"
+    },
+    "source_manifest_sha256": "b7e00ebb1aed1ccd68b9b113c9e749ac7ce535c17ac99a34e48a064c674edf0e"
+  },
   "frozen_note": "HOLD-OUT: method and configuration are byte-identical to the 2019 run (commit-frozen). Nothing about 2020 — data, events, results — informed any hyperparameter, sensor, marginal or selection-rule choice. Copula/AR fitted Jan–Apr 2019; rolling references trail across the year boundary; all of 2020 is scored blind. 2020 event labels are post-hoc annotations only.",
   "covid_note": "Calibration is reported on pre-COVID 2020 (01 Jan–15 Mar) separately: from 23 Mar the grid genuinely was anomalous for months (first lockdown), so excess over expected in that span is detected signal, not miscalibration.",
   "config": {

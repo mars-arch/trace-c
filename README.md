@@ -11,7 +11,8 @@ rules, and a frozen blind hold-out year.
 
 The deterministic TypeScript core has zero runtime dependencies. Data
 aggregation uses Python's standard library. The optional external-baseline
-suite has pinned NumPy, PyTorch, scikit-learn, and TensorBoard dependencies.
+suite pins CPython and the direct NumPy, PyTorch, scikit-learn, and TensorBoard
+package versions used here.
 
 ## Method
 
@@ -40,7 +41,7 @@ For aligned multi-stream series (`src/trace-c.ts`, generic over any matrix):
    support it (floor 1/(n+1) > q/m — common, and claiming "FDR ≤ q" there is
    theatre), fall back to the **record rule** (S beats every prior window)
    with its exchangeable-null reference count Σ 1/(n_prior+1) reported as
-   `expected_null_alerts`. Then a hard per-day staff-attention budget.
+   `expected_null_alerts`. Then a hard per-day operator-attention budget.
    The report always says which rule ran.
 
 ## Evidence (real data, Open Government Licence)
@@ -128,27 +129,41 @@ reports' `honesty_note`:
 ## Reproduce
 
 ```bash
-bun install            # pinned TypeScript/Bun test tooling
+bun install            # frozen dependency lock; Bun 1.3.11
 bash scripts/fetch-data.sh    # ~150MB transient downloads (NESO, OGL) → ~4MB kept
 bun run eval           # rebuilds TRACE-C reports + hash-checked baseline comparison
-bun run check          # 5 Bun tests + 3 Python tests + strict TypeScript check
+bun run check:core     # 15 Bun tests + types + full evidence provenance
 ```
 
 To retrain every baseline and regenerate its score artifact:
 
 ```bash
+python3 --version      # must match the exact version in .python-version
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements-baselines.txt
+bun run check          # core checks + 15 Python baseline/data/TensorBoard tests
 bun run baselines
 bun run tb:baselines
 python -m tensorboard.main --logdir runs/trace-c-baselines --host 127.0.0.1 --port 6006
 ```
 
+If training and TensorBoard live in separate interpreters, set
+`BASELINE_PYTHON=/path/to/python` and/or
+`TENSORBOARD_PYTHON=/path/to/python` on the corresponding `bun run` command.
+
 `baseline-scores.json`, `ae-training-history.json`, and the final comparison
-report are committed evidence. The evaluator hashes both the exported series
-and trainer source and refuses stale artifacts. Raw downloads, aligned export,
-and TensorBoard event files are reproducible but gitignored.
+report are committed evidence. Trainer provenance covers its source, export
+pipeline, exact CPython/direct model-library versions, and source manifest. The core
+reports bind their generator sources; the final report is regenerated in
+memory and compared in full. `bun run verify:artifacts` refuses missing,
+stale, or altered combinations. Raw downloads, aligned export, and TensorBoard
+event files are reproducible but gitignored; every TensorBoard export gets an
+isolated or atomically claimed run directory. Retained NESO inputs are pinned
+by `data/source-checksums.json` and verified before report generation.
+Transitive Python wheels remain platform-resolved; bitwise portability across
+operating systems is not claimed, and the producing platform/machine are
+recorded in each score artifact.
 
 ## Provenance
 

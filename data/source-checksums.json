@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "files": {
+    "data/real/neso-demand-2019.csv": {
+      "bytes": 1554786,
+      "sha256": "0084d546dcdba0af21b7414f1a1b0ab308a9de8460884aa8e550fd0e858b38da",
+      "source": "https://api.neso.energy/dataset/8f2fe0af-871c-488d-8bad-960426f24601/resource/dd9de980-d724-415a-b344-d8ae11321432/download/demanddata_2019.csv"
+    },
+    "data/real/neso-demand-2020.csv": {
+      "bytes": 1560521,
+      "sha256": "7121b6fbf317862febe364f6b702184836b174327bf503ac143de1191f61f141",
+      "source": "https://api.neso.energy/dataset/8f2fe0af-871c-488d-8bad-960426f24601/resource/33ba6857-2a55-479f-9308-e5c4c53d4381/download/demanddata_2020.csv"
+    },
+    "data/real/neso-frequency-2019-agg.csv": {
+      "bytes": 690769,
+      "sha256": "eeb1c450bc6173b548a0935e1a7585c5d48aa69350e3ec0c4464357151d419f0",
+      "source": "NESO monthly 1-second frequency ZIPs listed in scripts/aggregate_frequency.py; deterministic 2019 aggregate"
+    },
+    "data/real/neso-frequency-2020-agg.csv": {
+      "bytes": 693901,
+      "sha256": "19bab03627575402e69afb8db9a5d054b19f6b66ef8da6d70b68547bc0385880",
+      "source": "NESO monthly 1-second frequency ZIPs listed in scripts/aggregate_frequency.py; deterministic 2020 aggregate"
+    }
+  }
+}

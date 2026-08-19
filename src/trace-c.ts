@@ -18,7 +18,7 @@
  *                 formula, never rounded).
  *   selection   — BH FDR when granularity supports it; else record rule with
  *                 expected_null_alerts under exchangeable scores; then a hard
- *                 per-day staff-attention budget. Dropped alerts are counted.
+ *                 per-day operator-attention budget. Dropped alerts are counted.
  *
  * Deterministic, dependency-free TypeScript. Generic over any aligned
  * multi-stream matrix. Operational streams only — never person-risk scores.
@@ -189,7 +189,7 @@ export type TraceCInput = {
   splits: { trainEnd: number; calEnd: number };
   pitK?: number; // rolling PIT depth per regime (default 20)
   fdrQ?: number; // BH level across test windows (default 0.1)
-  budgetPerDay?: number; // hard staff-attention budget (default 2)
+  budgetPerDay?: number; // hard operator-attention budget (default 2)
   periodsPerDay?: number; // timesteps per day, for budget grouping
   rollingRefSize?: number; // trailing windows per channel rank reference (default 240)
   sRefMin?: number; // min prior S values before conformal p is emitted (default 40)
@@ -508,7 +508,7 @@ export function runTraceC(input: TraceCInput): TraceCResult {
       ? testWins.reduce((acc, x) => acc + (x.pFloor ?? 0), 0)
       : q * fdrPass.length;
 
-  // Hard staff-attention budget per day (keep lowest-p per day; count drops)
+  // Hard operator-attention budget per day (keep lowest-p per day; count drops)
   const byDay = new Map<number, TraceCWindow[]>();
   for (const x of fdrPass) {
     const day = Math.floor(x.t0 / perDay);

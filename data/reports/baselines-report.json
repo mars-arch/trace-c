@@ -6,14 +6,23 @@
     "schema_version": 2,
     "seed": 42,
     "series_sha256": "fff248728426e6fc3861b1ba6d7cd50904a9b52a01ffa04504434356e5b3ab95",
-    "trainer_sha256": "a984d8c4f7445399a35fff16638302dc22360140d10713e492b6863f9e59deff",
+    "trainer_sha256": "54fb2d2289abe9714b2642f70d56a9847d7d03b43a87e6b9e8f2b9691d6e7a4f",
     "versions": {
+      "machine": "arm64",
       "numpy": "2.2.6",
+      "platform": "Darwin",
       "python": "3.13.1",
       "scikit_learn": "1.6.1",
       "torch": "2.12.0"
     },
     "n_windows": 8772
+  },
+  "artifact_hashes": {
+    "evaluator_sha256": "375720641e4bd30a4f036f8bcff29343fdaa912222bbb57ffd8ac46e171f4c6d",
+    "baseline_scores_sha256": "368b99ff754ea900af197474c01bad1b767fad1d5a79d2ac0bce9df591dbf728",
+    "ae_training_history_sha256": "f8806986b81926f21b20f1539f85c0e65192db54b20da67624ffd2086c094410",
+    "trace_c_real_report_sha256": "6a0c87121896b6cfba8195ace22307cdb388d1cff19f4586c6d3770f6137b2ab",
+    "trace_c_holdout_report_sha256": "852cd86e5efed16a6a38cfe2158f8c8aba7d77223828970f56e8df2de56fe4fb"
   },
   "baselines": [
     {

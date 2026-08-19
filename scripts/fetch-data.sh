@@ -18,12 +18,13 @@ for year in 2019 2020; do
   demand="data/real/neso-demand-${year}.csv"
   if [ ! -s "$demand" ]; then
     echo "downloading demand ${year}..."
-    curl -sL "${DEMAND_BASE}/${DEMAND[$year]}" -o "$demand"
+    curl -fsSL "${DEMAND_BASE}/${DEMAND[$year]}" -o "$demand"
   fi
   agg="data/real/neso-frequency-${year}-agg.csv"
   if [ ! -s "$agg" ]; then
     "$PY" scripts/aggregate_frequency.py "$year"
   fi
 done
+"$PY" scripts/verify_source_data.py
 echo "data ready:"
 ls -la data/real/

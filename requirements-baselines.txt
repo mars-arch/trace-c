@@ -1,4 +1,5 @@
 # Exact environment used to regenerate the committed baseline artifacts.
+# CPython 3.13.1 is pinned separately in the tracked .python-version file.
 numpy==2.2.6
 scikit-learn==1.6.1
 torch==2.12.0
