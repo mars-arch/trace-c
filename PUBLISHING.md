@@ -49,15 +49,15 @@ accept that dev-machine paths are visible; they are paths, not secrets).
 - Bundle: `make -C paper arxiv` → `paper/arxiv/trace-c-arxiv.tar.gz`
   (includes `main.bbl`; arXiv does not need to run BibTeX).
 
-## 3. Hugging Face (`mars2titan`)
+## 3. Hugging Face (`mars2titan`) — live
 
-- Dataset repo: aligned series export recipe, event annotations, committed
-  reports, fetch scripts. Code MIT; data under the NESO Open Data Licence
-  with the exact attribution "Supported by National Energy SO Open Data".
-- Request a **DOI** on the dataset repo — it fills the paper's pending
-  availability statement.
-- Optional model repo: conv-AE baseline weights + tfevents (hosted
-  Training-metrics tab). Label clearly as the paper's BASELINE, not TRACE-C.
+- Dataset: https://huggingface.co/datasets/mars2titan/trace-c-neso-benchmark
+  (committed reports + NESO checksums). Code MIT; telemetry NESO Open Data
+  Licence; attribution "Supported by National Energy SO Open Data".
+- Baseline model (not TRACE-C): https://huggingface.co/mars2titan/trace-c-conv-ae-baseline
+  (conv-AE tfevents → Training metrics tab).
+- Request a **DOI** on the dataset repo (Settings → DOI). That fills the
+  paper's pending archival identifier.
 
 ## 4. After publishing
 
