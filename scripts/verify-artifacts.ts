@@ -13,6 +13,7 @@ import {
   BASELINE_EVALUATOR_SOURCES,
   buildBaselineComparisonReport,
 } from "../src/baselines-report";
+import { runAblation2019 } from "../src/ablation";
 import { runHoldout2020 } from "../src/holdout";
 import { runRealTraceC } from "../src/real";
 
@@ -60,6 +61,7 @@ export function verifyArtifacts(): void {
   const historyPath = join(root, "data/reports/ae-training-history.json");
   const realPath = join(root, "data/reports/trace-c-real-report.json");
   const holdoutPath = join(root, "data/reports/trace-c-holdout-report.json");
+  const ablationPath = join(root, "data/reports/trace-c-ablation-2019.json");
   const seriesPath = join(root, "data/real/series-export.json");
 
   verifyPinnedSourceData();
@@ -68,6 +70,7 @@ export function verifyArtifacts(): void {
   const history = JSON.parse(readFileSync(historyPath, "utf8"));
   const real = JSON.parse(readFileSync(realPath, "utf8"));
   const holdout = JSON.parse(readFileSync(holdoutPath, "utf8"));
+  const ablation = JSON.parse(readFileSync(ablationPath, "utf8"));
   const series = JSON.parse(readFileSync(seriesPath, "utf8"));
 
   const trainerSha256 = sha256Implementation(baselineTrainerSources(root));
@@ -112,6 +115,7 @@ export function verifyArtifacts(): void {
   );
   assertCoreReportCurrent("TRACE-C 2019", real, runRealTraceC());
   assertCoreReportCurrent("TRACE-C 2020", holdout, runHoldout2020());
+  assertCoreReportCurrent("TRACE-C 2019 ablation", ablation, runAblation2019());
   assertReportBodyCurrent(report, buildBaselineComparisonReport());
 }
 

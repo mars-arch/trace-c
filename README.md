@@ -71,6 +71,11 @@ Fit: Jan–Apr 2019. Everything after is scored with strictly-prior references.
 | Top ranked blind windows | **#1 Storm Ellen (Aug 20, post-ranking interpretation)**; **#2 Jan20 unlabelled window**; **#5 Storm Alex (Oct 3, post-ranking interpretation)** |
 | Record rule | saturates on long horizons (0 vs 0.87 expected) — real finding; v3 selection rule to be validated on 2021 |
 
+**2019 channel ablation (development year, not a hold-out):** leave-one-out and
+single-channel reruns under the same windows and selection rule. The full
+detector's Atiyah `lead_channel` (local) was visible before this suite.
+`bun run eval:ablation` writes `data/reports/trace-c-ablation-2019.json`.
+
 Full machine-readable results: `data/reports/*.json` (committed).
 
 ## External baselines (post-hoc comparison)
@@ -132,7 +137,7 @@ reports' `honesty_note`:
 ```bash
 bun install            # frozen dependency lock; Bun 1.3.11
 bash scripts/fetch-data.sh    # ~150MB transient downloads (NESO Open Data Licence) → ~4MB kept
-bun run eval           # rebuilds TRACE-C reports + hash-checked baseline comparison
+bun run eval           # rebuilds TRACE-C reports, 2019 ablation, hash-checked baselines
 bun run check:core     # 15 Bun tests + types + full evidence provenance
 ```
 

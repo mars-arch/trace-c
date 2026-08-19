@@ -179,6 +179,26 @@ export function rollingRegimeZ(
 
 // ---------- core ----------
 
+export const TRACE_C_CHANNEL_NAMES = ["local", "copula", "temporal"] as const;
+export type TraceCChannel = (typeof TRACE_C_CHANNEL_NAMES)[number];
+
+export function resolveEnabledChannels(
+  enabled?: readonly string[]
+): TraceCChannel[] {
+  const requested = enabled ?? TRACE_C_CHANNEL_NAMES;
+  if (requested.length === 0) {
+    throw new Error("enabledChannels must be non-empty");
+  }
+  const allowed = new Set<string>(TRACE_C_CHANNEL_NAMES);
+  const seen = new Set<string>();
+  for (const name of requested) {
+    if (!allowed.has(name)) throw new Error(`unknown channel ${name}`);
+    if (seen.has(name)) throw new Error(`duplicate channel ${name}`);
+    seen.add(name);
+  }
+  return TRACE_C_CHANNEL_NAMES.filter((name) => seen.has(name));
+}
+
 export type TraceCInput = {
   /** Aligned equal-length series, one per operational stream. */
   streams: Record<string, number[]>;
@@ -194,6 +214,8 @@ export type TraceCInput = {
   periodsPerDay?: number; // timesteps per day, for budget grouping
   rollingRefSize?: number; // trailing windows per channel rank reference (default 240)
   sRefMin?: number; // min prior S values before conformal p is emitted (default 40)
+  /** Subset of built-in channels to rank and combine. Default: all three. */
+  enabledChannels?: readonly TraceCChannel[];
   /** Optional extra per-WINDOW channel scores (e.g. discrete-sequence NLL). */
   extraChannels?: Record<string, (number | null)[]>;
 };
@@ -252,6 +274,8 @@ export function runTraceC(input: TraceCInput): TraceCResult {
   const q = input.fdrQ ?? 0.1;
   const budget = input.budgetPerDay ?? 2;
   const perDay = input.periodsPerDay ?? W;
+  const enabled = resolveEnabledChannels(input.enabledChannels);
+  const enabledSet = new Set<string>(enabled);
   const { trainEnd, calEnd } = input.splits;
   if (!(trainEnd > 0 && calEnd > trainEnd && calEnd < N)) {
     throw new Error("bad splits");
@@ -263,7 +287,7 @@ export function runTraceC(input: TraceCInput): TraceCResult {
     z[s] = rollingRegimeZ(input.streams[s]!, input.regime, K);
   }
 
-  // 2) Gaussian copula fit on train z (complete rows only)
+  // 2) Gaussian copula fit on train z (complete rows only), if G is enabled
   const trainRows: number[][] = [];
   for (let t = 0; t < trainEnd; t++) {
     const row = names.map((s) => z[s]![t]);
@@ -272,59 +296,66 @@ export function runTraceC(input: TraceCInput): TraceCResult {
   if (trainRows.length < 50) throw new Error("too few complete train rows after burn-in");
   const dim = names.length;
   const corr: number[][] = Array.from({ length: dim }, () => new Array(dim).fill(0));
-  for (let i = 0; i < dim; i++) {
-    for (let j = i; j < dim; j++) {
-      let s = 0;
-      for (const row of trainRows) s += row[i]! * row[j]!;
-      const v = s / trainRows.length;
-      corr[i]![j] = v;
-      corr[j]![i] = v;
-    }
-  }
-  // normalize to unit diagonal (PIT z's are ~N(0,1) but finite-K shrinks tails)
-  const diag = names.map((_, i) => Math.sqrt(Math.max(corr[i]![i]!, 1e-9)));
-  for (let i = 0; i < dim; i++) {
-    for (let j = 0; j < dim; j++) corr[i]![j] = corr[i]![j]! / (diag[i]! * diag[j]!);
-  }
-  const { L, ridge } = cholesky(corr);
-  const ld = logDet(L);
-  /** Gaussian copula-form dependence score on robust-z residuals (high = joint surprise). */
-  const negLogCopula = (row: number[]): number => {
-    const solved = cholSolve(L, row);
-    let quad = 0;
-    let sq = 0;
+  let ridge = 0;
+  let negLogCopula = (_row: number[]): number => 0;
+  if (enabledSet.has("copula")) {
     for (let i = 0; i < dim; i++) {
-      quad += row[i]! * solved[i]!;
-      sq += row[i]! * row[i]!;
+      for (let j = i; j < dim; j++) {
+        let s = 0;
+        for (const row of trainRows) s += row[i]! * row[j]!;
+        const v = s / trainRows.length;
+        corr[i]![j] = v;
+        corr[j]![i] = v;
+      }
     }
-    return 0.5 * (quad - sq) + 0.5 * ld;
-  };
+    // normalize to unit diagonal (PIT z's are ~N(0,1) but finite-K shrinks tails)
+    const diag = names.map((_, i) => Math.sqrt(Math.max(corr[i]![i]!, 1e-9)));
+    for (let i = 0; i < dim; i++) {
+      for (let j = 0; j < dim; j++) corr[i]![j] = corr[i]![j]! / (diag[i]! * diag[j]!);
+    }
+    const chol = cholesky(corr);
+    ridge = chol.ridge;
+    const ld = logDet(chol.L);
+    /** Gaussian copula-form dependence score on robust-z residuals (high = joint surprise). */
+    negLogCopula = (row: number[]): number => {
+      const solved = cholSolve(chol.L, row);
+      let quad = 0;
+      let sq = 0;
+      for (let i = 0; i < dim; i++) {
+        quad += row[i]! * solved[i]!;
+        sq += row[i]! * row[i]!;
+      }
+      return 0.5 * (quad - sq) + 0.5 * ld;
+    };
+  }
 
   // 3) AR(1) innovations per stream (φ and innovation scale from train)
   const phi: Record<string, number> = {};
   const innovSd: Record<string, number> = {};
-  for (const s of names) {
-    let sxy = 0;
-    let sxx = 0;
-    const innovs: number[] = [];
-    for (let t = 1; t < trainEnd; t++) {
-      const a = z[s]![t - 1];
-      const b = z[s]![t];
-      if (a == null || b == null) continue;
-      sxy += a * b;
-      sxx += a * a;
+  if (enabledSet.has("temporal")) {
+    for (const s of names) {
+      let sxy = 0;
+      let sxx = 0;
+      const innovs: number[] = [];
+      for (let t = 1; t < trainEnd; t++) {
+        const a = z[s]![t - 1];
+        const b = z[s]![t];
+        if (a == null || b == null) continue;
+        sxy += a * b;
+        sxx += a * a;
+      }
+      const f = sxx > 0 ? Math.max(-0.99, Math.min(0.99, sxy / sxx)) : 0;
+      phi[s] = f;
+      for (let t = 1; t < trainEnd; t++) {
+        const a = z[s]![t - 1];
+        const b = z[s]![t];
+        if (a == null || b == null) continue;
+        innovs.push(b - f * a);
+      }
+      const m = innovs.reduce((x, y) => x + y, 0) / Math.max(innovs.length, 1);
+      innovSd[s] =
+        Math.sqrt(innovs.reduce((x, y) => x + (y - m) ** 2, 0) / Math.max(innovs.length, 1)) || 1e-9;
     }
-    const f = sxx > 0 ? Math.max(-0.99, Math.min(0.99, sxy / sxx)) : 0;
-    phi[s] = f;
-    for (let t = 1; t < trainEnd; t++) {
-      const a = z[s]![t - 1];
-      const b = z[s]![t];
-      if (a == null || b == null) continue;
-      innovs.push(b - f * a);
-    }
-    const m = innovs.reduce((x, y) => x + y, 0) / Math.max(innovs.length, 1);
-    innovSd[s] =
-      Math.sqrt(innovs.reduce((x, y) => x + (y - m) ** 2, 0) / Math.max(innovs.length, 1)) || 1e-9;
   }
 
   // 4) Window channel scores
@@ -358,22 +389,26 @@ export function runTraceC(input: TraceCInput): TraceCResult {
         streamZ[s] = Number(zw.toFixed(3));
         sL = Math.max(sL, Math.abs(zw));
       }
-      channels.local = sL;
-      let g = 0;
-      for (let t = t0; t < t1; t++) g += negLogCopula(names.map((s) => z[s]![t]!) as number[]);
-      channels.copula = g / W;
-      // Temporal = WORST single transition in the window (sharp breaks are
-      // point events; a mean would dilute them across quiet periods).
-      let sT = 0;
-      for (const s of names) {
-        for (let t = Math.max(t0, 1); t < t1; t++) {
-          const a = z[s]![t - 1];
-          const b = z[s]![t];
-          if (a == null || b == null) continue;
-          sT = Math.max(sT, Math.abs(b - phi[s]! * a) / innovSd[s]!);
-        }
+      if (enabledSet.has("local")) channels.local = sL;
+      if (enabledSet.has("copula")) {
+        let g = 0;
+        for (let t = t0; t < t1; t++) g += negLogCopula(names.map((s) => z[s]![t]!) as number[]);
+        channels.copula = g / W;
       }
-      channels.temporal = sT;
+      if (enabledSet.has("temporal")) {
+        // Temporal = WORST single transition in the window (sharp breaks are
+        // point events; a mean would dilute them across quiet periods).
+        let sT = 0;
+        for (const s of names) {
+          for (let t = Math.max(t0, 1); t < t1; t++) {
+            const a = z[s]![t - 1];
+            const b = z[s]![t];
+            if (a == null || b == null) continue;
+            sT = Math.max(sT, Math.abs(b - phi[s]! * a) / innovSd[s]!);
+          }
+        }
+        channels.temporal = sT;
+      }
       for (const en of extraNames) {
         const v = input.extraChannels![en]![w];
         if (v != null && Number.isFinite(v)) channels[en] = v;
@@ -390,7 +425,7 @@ export function runTraceC(input: TraceCInput): TraceCResult {
   // reference removes both problems at once. Combined S = Fisher over the
   // channel rank-p's: rank-based, so its null distribution is approximately
   // pivotal over time, which is what makes step 6's growing reference valid.
-  const chanNames = ["local", "copula", "temporal", ...extraNames];
+  const chanNames = [...enabled, ...extraNames];
   const C = input.rollingRefSize ?? 240;
   const refSorted: Record<string, number[]> = {};
   const refQueue: Record<string, number[]> = {};

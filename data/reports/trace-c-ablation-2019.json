@@ -1,0 +1,301 @@
+{
+  "provenance": {
+    "schema_version": 1,
+    "generator_sources_sha256": {
+      "src/ablation.ts": "a9841ba9f999aa1077131eb13366c3181ecb80343d1c670b7522116bf392330c",
+      "src/real.ts": "50bd1bc0035b7b869d1738bf907537f02780ae3dc172d3ccd9162115e07c7477",
+      "src/trace-c.ts": "a359c629fe298dcbb672610ef85665a31e673b4eb0687e69ea555e2c87951f45"
+    },
+    "source_manifest_sha256": "b7e00ebb1aed1ccd68b9b113c9e749ac7ce535c17ac99a34e48a064c674edf0e"
+  },
+  "protocol": "2019 development-year channel ablation. Not a hold-out. The full detector's Atiyah lead_channel was inspected before this suite ran. Variants drop or isolate local / copula / temporal under the same windows, splits, and selection rule as the committed 2019 report.",
+  "config": {
+    "windowSize": 4,
+    "pitK": 40,
+    "fdrQ": 0.05,
+    "budgetPerDay": 2,
+    "fit": "2019-01-01..2019-04-30",
+    "scored": "2019-07-01..2019-12-31",
+    "streams": [
+      "ND",
+      "TSD",
+      "EMBEDDED_WIND_GENERATION",
+      "EMBEDDED_SOLAR_GENERATION",
+      "PUMP_STORAGE_PUMPING",
+      "FREQ_MAX_ABS_DEV"
+    ]
+  },
+  "variants": {
+    "full": {
+      "channels": [
+        "local",
+        "copula",
+        "temporal"
+      ],
+      "selection": "record_rule",
+      "alerts_total": 2,
+      "expected_null_alerts": 1.19,
+      "calibration_check": [
+        {
+          "level": 0.05,
+          "observed": 120,
+          "expected_null": 110.4
+        },
+        {
+          "level": 0.01,
+          "observed": 23,
+          "expected_null": 22.1
+        }
+      ],
+      "known_events": [
+        {
+          "id": "GB-BLACKOUT-2019-08-09",
+          "alerted": false,
+          "rank": 143,
+          "best_p": 0.06042,
+          "lead_channel": "temporal",
+          "total_test_windows": 2208
+        },
+        {
+          "id": "STORM-ATIYAH-2019-12-08",
+          "alerted": true,
+          "rank": 1,
+          "best_p": 0.00035,
+          "lead_channel": "local",
+          "total_test_windows": 2208
+        }
+      ]
+    },
+    "drop_copula": {
+      "channels": [
+        "local",
+        "temporal"
+      ],
+      "selection": "record_rule",
+      "alerts_total": 1,
+      "expected_null_alerts": 1.19,
+      "calibration_check": [
+        {
+          "level": 0.05,
+          "observed": 125,
+          "expected_null": 110.4
+        },
+        {
+          "level": 0.01,
+          "observed": 38,
+          "expected_null": 22.1
+        }
+      ],
+      "known_events": [
+        {
+          "id": "GB-BLACKOUT-2019-08-09",
+          "alerted": false,
+          "rank": 69,
+          "best_p": 0.02569,
+          "lead_channel": "temporal",
+          "total_test_windows": 2208
+        },
+        {
+          "id": "STORM-ATIYAH-2019-12-08",
+          "alerted": false,
+          "rank": 2,
+          "best_p": 0.00069,
+          "lead_channel": "local",
+          "total_test_windows": 2208
+        }
+      ]
+    },
+    "drop_local": {
+      "channels": [
+        "copula",
+        "temporal"
+      ],
+      "selection": "record_rule",
+      "alerts_total": 0,
+      "expected_null_alerts": 1.19,
+      "calibration_check": [
+        {
+          "level": 0.05,
+          "observed": 119,
+          "expected_null": 110.4
+        },
+        {
+          "level": 0.01,
+          "observed": 16,
+          "expected_null": 22.1
+        }
+      ],
+      "known_events": [
+        {
+          "id": "GB-BLACKOUT-2019-08-09",
+          "alerted": false,
+          "rank": 119,
+          "best_p": 0.05,
+          "lead_channel": "temporal",
+          "total_test_windows": 2208
+        },
+        {
+          "id": "STORM-ATIYAH-2019-12-08",
+          "alerted": false,
+          "rank": 3,
+          "best_p": 0.00208,
+          "lead_channel": "temporal",
+          "total_test_windows": 2208
+        }
+      ]
+    },
+    "drop_temporal": {
+      "channels": [
+        "local",
+        "copula"
+      ],
+      "selection": "record_rule",
+      "alerts_total": 1,
+      "expected_null_alerts": 1.19,
+      "calibration_check": [
+        {
+          "level": 0.05,
+          "observed": 101,
+          "expected_null": 110.4
+        },
+        {
+          "level": 0.01,
+          "observed": 24,
+          "expected_null": 22.1
+        }
+      ],
+      "known_events": [
+        {
+          "id": "GB-BLACKOUT-2019-08-09",
+          "alerted": false,
+          "rank": 338,
+          "best_p": 0.15337,
+          "lead_channel": "copula",
+          "total_test_windows": 2208
+        },
+        {
+          "id": "STORM-ATIYAH-2019-12-08",
+          "alerted": false,
+          "rank": 5,
+          "best_p": 0.00243,
+          "lead_channel": "local",
+          "total_test_windows": 2208
+        }
+      ]
+    },
+    "local_only": {
+      "channels": [
+        "local"
+      ],
+      "selection": "record_rule",
+      "alerts_total": 0,
+      "expected_null_alerts": 1.19,
+      "calibration_check": [
+        {
+          "level": 0.05,
+          "observed": 111,
+          "expected_null": 110.4
+        },
+        {
+          "level": 0.01,
+          "observed": 16,
+          "expected_null": 22.1
+        }
+      ],
+      "known_events": [
+        {
+          "id": "GB-BLACKOUT-2019-08-09",
+          "alerted": false,
+          "rank": 241,
+          "best_p": 0.10764,
+          "lead_channel": "local",
+          "total_test_windows": 2208
+        },
+        {
+          "id": "STORM-ATIYAH-2019-12-08",
+          "alerted": false,
+          "rank": 3,
+          "best_p": 0.00208,
+          "lead_channel": "local",
+          "total_test_windows": 2208
+        }
+      ]
+    },
+    "copula_only": {
+      "channels": [
+        "copula"
+      ],
+      "selection": "record_rule",
+      "alerts_total": 0,
+      "expected_null_alerts": 1.19,
+      "calibration_check": [
+        {
+          "level": 0.05,
+          "observed": 111,
+          "expected_null": 110.4
+        },
+        {
+          "level": 0.01,
+          "observed": 15,
+          "expected_null": 22.1
+        }
+      ],
+      "known_events": [
+        {
+          "id": "GB-BLACKOUT-2019-08-09",
+          "alerted": false,
+          "rank": 323,
+          "best_p": 0.14226,
+          "lead_channel": "copula",
+          "total_test_windows": 2208
+        },
+        {
+          "id": "STORM-ATIYAH-2019-12-08",
+          "alerted": false,
+          "rank": 59,
+          "best_p": 0.02667,
+          "lead_channel": "copula",
+          "total_test_windows": 2208
+        }
+      ]
+    },
+    "temporal_only": {
+      "channels": [
+        "temporal"
+      ],
+      "selection": "record_rule",
+      "alerts_total": 0,
+      "expected_null_alerts": 1.19,
+      "calibration_check": [
+        {
+          "level": 0.05,
+          "observed": 94,
+          "expected_null": 110.4
+        },
+        {
+          "level": 0.01,
+          "observed": 17,
+          "expected_null": 22.1
+        }
+      ],
+      "known_events": [
+        {
+          "id": "GB-BLACKOUT-2019-08-09",
+          "alerted": false,
+          "rank": 40,
+          "best_p": 0.02222,
+          "lead_channel": "temporal",
+          "total_test_windows": 2208
+        },
+        {
+          "id": "STORM-ATIYAH-2019-12-08",
+          "alerted": false,
+          "rank": 10,
+          "best_p": 0.00485,
+          "lead_channel": "temporal",
+          "total_test_windows": 2208
+        }
+      ]
+    }
+  }
+}
