@@ -6,9 +6,9 @@
  *   marginals   — regime-conditioned rolling robust-z (or rank-PIT legacy),
  *                 strictly prior same-regime history, so seasonal drift does
  *                 not masquerade as anomaly.
- *   G channel   — Gaussian copula null fitted on the train segment; joint
- *                 surprise = negative log copula density (dependence-only),
- *                 not an independence assumption.
+ *   G channel   — Gaussian copula-form dependence score on robust-z residuals,
+ *                 with dependence fitted on the train segment; not an
+ *                 independence assumption.
  *   T channel   — AR(1) innovation surprise per stream (order/temporal break).
  *   L channel   — max per-stream window aggregate |z| (two-sided).
  *   ranks       — each channel as a rank-p vs a trailing window of strictly
@@ -16,9 +16,10 @@
  *   combination — S = Fisher over channel rank-p's; conformal p vs the growing
  *                 set of all strictly-prior S values (exact finite-sample rank
  *                 formula, never rounded).
- *   selection   — BH FDR when granularity supports it; else record rule with
- *                 expected_null_alerts under exchangeable scores; then a hard
- *                 per-day operator-attention budget. Dropped alerts are counted.
+ *   selection   — BH FDR is attempted first; if it selects no windows, use the
+ *                 record rule with expected_null_alerts under exchangeable
+ *                 scores; then a hard per-day operator-attention budget.
+ *                 Dropped alerts are counted.
  *
  * Deterministic, dependency-free TypeScript. Generic over any aligned
  * multi-stream matrix. Operational streams only — never person-risk scores.
@@ -139,7 +140,7 @@ export function rollingRegimePIT(
  * last K same-regime observations (strictly prior), clipped to ±Z_CLIP.
  *
  * This is the MARGINAL the channels consume. A rank-PIT marginal clips z at
- * ±Φ⁻¹((K+½)/(K+1)) (±2.33 at K=40), so a 30σ physical excursion scores the
+ * ±Φ⁻¹((K+½)/(K+1)) (approximately ±2.2509 at K=40), so a 30σ physical excursion scores the
  * same as a barely-record reading — deep-tail power is destroyed by design.
  * The robust-z marginal preserves magnitude; VALIDITY is unaffected because
  * the downstream channel scores are rank-normalized against trailing windows
@@ -287,7 +288,7 @@ export function runTraceC(input: TraceCInput): TraceCResult {
   }
   const { L, ridge } = cholesky(corr);
   const ld = logDet(L);
-  /** −log Gaussian copula density: ½ zᵀ(Σ⁻¹ − I)z + ½ log|Σ| (high = joint surprise). */
+  /** Gaussian copula-form dependence score on robust-z residuals (high = joint surprise). */
   const negLogCopula = (row: number[]): number => {
     const solved = cholSolve(L, row);
     let quad = 0;
@@ -479,11 +480,9 @@ export function runTraceC(input: TraceCInput): TraceCResult {
   const testWins = windows.filter((x) => x.segment === "test" && x.p != null);
   const nCal = sRefFinal;
 
-  // 7) Selection. BH is attempted first, but conformal granularity is a
-  // hard limit: the smallest achievable p at window w is 1/(n_prior+1), and
-  // BH at level q over m tests may need smaller — in that regime BH either
-  // selects a block of floor ties or nothing, and claiming "FDR ≤ q" would
-  // be vacuous. The fallback is the RECORD rule: alert when S exceeds every
+  // 7) Selection. BH is attempted first. If BH selects no windows (often
+  // because conformal granularity makes its threshold unreachable), the
+  // fallback is the RECORD rule: alert when S exceeds every
   // strictly-prior window (p at its own floor). Its null expectation is
   // Σ 1/(n_prior+1) over test windows — reported as expected_null_alerts so
   // the observed count can be judged against it. Never silent about which

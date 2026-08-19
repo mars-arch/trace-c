@@ -25,3 +25,31 @@ test("committed evidence reports contain no wall-clock rebuild timestamp", () =>
     expect(report).not.toHaveProperty("generated_at");
   }
 });
+
+test("release-facing NESO metadata uses the official licence and attribution", () => {
+  const readme = readFileSync(join(import.meta.dir, "../README.md"), "utf8");
+  const packageJson = readFileSync(join(import.meta.dir, "../package.json"), "utf8");
+  const realReport = JSON.parse(
+    readFileSync(join(import.meta.dir, "../data/reports/trace-c-real-report.json"), "utf8")
+  );
+
+  for (const text of [readme, packageJson]) {
+    expect(text).toContain("NESO Open Data Licence");
+    expect(text).toContain("Supported by National Energy SO Open Data");
+    expect(text).not.toContain("Open Government Licence");
+    expect(text).not.toMatch(/\bOGL\b/);
+  }
+
+  expect(realReport.source.licence).toBe("NESO Open Data Licence");
+  expect(realReport.source.attribution).toBe("Supported by National Energy SO Open Data");
+  for (const text of [realReport.source, realReport.frequency_stream]) {
+    expect(JSON.stringify(text)).not.toContain("Open Government Licence");
+    expect(JSON.stringify(text)).not.toMatch(/\bOGL\b/);
+  }
+});
+
+test("rank-PIT K=40 ceiling documentation is approximately 2.2509", () => {
+  const traceC = readFileSync(join(import.meta.dir, "../src/trace-c.ts"), "utf8");
+  expect(traceC).toContain("2.2509");
+  expect(traceC).not.toContain("2.33 at K=40");
+});

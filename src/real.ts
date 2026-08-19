@@ -2,7 +2,7 @@
  * TRACE-C live test on real multi-stream operational telemetry.
  *
  * Data: NESO (National Energy System Operator) Historic Demand Data 2019 —
- * half-hourly GB grid streams, Open Government Licence. Individually noisy
+ * half-hourly GB grid streams, NESO Open Data Licence. Individually noisy
  * streams that are jointly informative, with documented real incidents:
  *
  *   2019-08-09 ~16:52 BST — lightning strike, Hornsea + Little Barford trip,
@@ -104,10 +104,11 @@ export const REAL_STREAMS = [
 ] as const;
 
 // Optional 6th stream: per-settlement-period max |f − 50 Hz| aggregated from
-// NESO 1-second system-frequency data (same portal, OGL). Sensor-choice
-// disclosure: this stream was added AFTER the demand-only analysis showed the
-// 2019-08-09 event was not alert-separable — an event-informed choice of
-// sensor, disclosed in honesty_note; the demand-only run ships alongside.
+// NESO 1-second system-frequency data (same portal, NESO Open Data Licence).
+// Sensor-choice disclosure: this stream was added AFTER the demand-only
+// analysis showed the 2019-08-09 event was not alert-separable — an
+// event-informed choice of sensor, disclosed in honesty_note; the demand-only
+// run ships alongside.
 export const FREQ_STREAM = "FREQ_MAX_ABS_DEV";
 export const FREQ_AGG_CSV = join(root, "data/real/neso-frequency-2019-agg.csv");
 
@@ -441,13 +442,14 @@ export function runRealTraceC() {
     source: {
       dataset: "NESO Historic Demand Data 2019 (half-hourly GB grid telemetry)",
       file: "data/real/neso-demand-2019.csv",
-      licence: "Open Government Licence — real data, no injections",
+      licence: "NESO Open Data Licence",
+      attribution: "Supported by National Energy SO Open Data",
       streams: useFreq ? [...REAL_STREAMS, FREQ_STREAM] : [...REAL_STREAMS],
       rows: series.n,
     },
     frequency_stream: {
       available: useFreq,
-      source: "NESO system-frequency 1-second data (OGL), aggregated to per-period max |f − 50 Hz|",
+      source: "NESO system-frequency 1-second data (NESO Open Data Licence; Supported by National Energy SO Open Data), aggregated to per-period max |f − 50 Hz|",
       filled_cells: series.freq_filled_cells,
     },
     comparison: useFreq ? { demand_only: summarize(demandRes) } : null,
@@ -456,11 +458,11 @@ export function runRealTraceC() {
     method:
       `TRACE-C v2: rolling regime-conditioned robust-z marginals (median/MAD of last K=${PIT_K} ` +
       `same-regime obs, strictly prior, clipped ±10 — magnitude-preserving; rank-PIT clips the deep tail); ` +
-      `Gaussian copula null + AR(1) fitted on train (to 30 Apr); channels rank-normalized against a ` +
+      `Gaussian copula-form dependence score on robust-z residuals + AR(1) fitted on train (to 30 Apr); channels rank-normalized against a ` +
       `trailing ${res.config.rollingRefSize}-window strictly-prior reference (drift-adaptive, no ` +
       `self-inclusion); S = Fisher over channel rank-p's; conformal p vs all strictly-prior S (exact); ` +
-      `BH FDR q=${FDR_Q} attempted, falling back to the record rule (S beats every prior window) when ` +
-      `conformal granularity cannot support BH — selection field says which ran; hard budget ` +
+      `BH FDR q=${FDR_Q} attempted first; when BH selects no windows, falling back to the record rule ` +
+      `(S beats every prior window) — selection field says which ran; hard budget ` +
       `${BUDGET} alerts/day. Test = Jul–Dec.`,
     honesty_note:
       `The copula/AR fit ends 30 Apr and every rank reference is strictly prior to its scored window; event labels are used only for post-hoc annotation inside the detector. DISCLOSED SELECTION: W=4 and K=40 came from a small sweep (K∈{20,40}×W∈{2,4}) scored partly on the known blackout — production must fix them on train/cal only. EMPIRICAL RESULT: the blackout's best window ranks in the top ~${blackoutRankPct}% of 2019 development windows and is not separable at the operational alert rule. The final six-stream run does include FREQ_MAX_ABS_DEV, added after the demand-only analysis showed non-separability; even so, a W=4 two-hour window does not isolate this short event from sustained background extremes. The demand-only result ships in comparison. An earlier draft claimed the event was 'alerted blind'; that came from a miscalibrated fixed reference block (seasonal drift made its rank scores ~20× anti-conservative) and is retracted. MARGINAL-CHOICE DISCLOSURE: marginals were switched from rank-PIT to magnitude-preserving rolling robust-z after rank tail-clipping was identified, also an event-informed choice. The strictly-prior empirical rank counts are close to their exchangeable-null references in calibration_check, but that is a diagnostic rather than a distribution-free proof for seasonal, autocorrelated telemetry. Storm Atiyah, a sustained day-long extreme not used in tuning, ranks 1 and triggers the record alert. The detector itself never consumes event labels; the lesson is that detection depends on the sensor set and aggregation resolution as much as on the algorithm.`,

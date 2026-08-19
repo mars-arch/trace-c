@@ -23,9 +23,10 @@ For aligned multi-stream series (`src/trace-c.ts`, generic over any matrix):
    Magnitude-preserving: a rank-PIT marginal clips z at ±Φ⁻¹((K+½)/(K+1)),
    destroying deep-tail power (a 30σ excursion ties a barely-record reading).
 2. **Channels** per non-overlapping window:
-   *local* (max stream |Σz/√W|), *copula* (mean −log Gaussian-copula density,
-   Σ̂ fitted on the train segment — joint surprise under the fitted dependence,
-   not an independence assumption), *temporal* (worst AR(1) innovation),
+   *local* (max stream |Σz/√W|), *copula* (Gaussian copula-form dependence
+   score on robust-z residuals, Σ̂ fitted on the train segment — joint surprise
+   under the fitted dependence, not an independence assumption), *temporal*
+   (worst AR(1) innovation),
    plus optional extra channels.
 3. **Rank normalization** — each channel scored as a rank-p against a
    **trailing window of strictly-prior windows**. This kills two validity
@@ -37,14 +38,14 @@ For aligned multi-stream series (`src/trace-c.ts`, generic over any matrix):
    more stable over time; S is then ranked against the **growing set of all
    strictly-prior S values**. The finite-sample rank formula is exact and never
    rounded, but distribution-free calibration still requires exchangeability.
-5. **Selection** — BH FDR attempted; when conformal granularity cannot
-   support it (floor 1/(n+1) > q/m — common, and claiming "FDR ≤ q" there is
-   theatre), fall back to the **record rule** (S beats every prior window)
+5. **Selection** — BH FDR is attempted first; when it selects no windows
+   (conformal granularity often makes the BH threshold unreachable), fall back
+   to the **record rule** (S beats every prior window)
    with its exchangeable-null reference count Σ 1/(n_prior+1) reported as
    `expected_null_alerts`. Then a hard per-day operator-attention budget.
    The report always says which rule ran.
 
-## Evidence (real data, Open Government Licence)
+## Evidence (real data, NESO Open Data Licence)
 
 NESO GB grid telemetry: 5 half-hourly demand-side streams + a 6th stream
 aggregated from 1-second system frequency (per-period max |f − 50 Hz|).
@@ -65,9 +66,9 @@ Fit: Jan–Apr 2019. Everything after is scored with strictly-prior references.
 |---|---|
 | Calibration pre-COVID | p≤.05: 50/45 · p≤.01: 3/9 (slightly conservative) |
 | Storm Ciara (Feb 8–9) | rank 44/4392 blind (p=0.012) |
-| COVID lockdown onset (Mar 23) | rank 45/4392 blind |
+| COVID lockdown onset (Mar 23) | best over the 14-day transition: rank 45/4392 blind; best window 2020-03-28 06:00 |
 | Storm Dennis (Feb 15–16) | rank 137/4392 blind |
-| Top unlabelled blind windows | **Storm Ellen (Aug 20)** and **Storm Alex (Oct 3)** — identified by lookup *after* ranking |
+| Top ranked blind windows | **#1 Storm Ellen (Aug 20, post-ranking interpretation)**; **#2 Jan20 unlabelled window**; **#5 Storm Alex (Oct 3, post-ranking interpretation)** |
 | Record rule | saturates on long horizons (0 vs 0.87 expected) — real finding; v3 selection rule to be validated on 2021 |
 
 Full machine-readable results: `data/reports/*.json` (committed).
@@ -130,7 +131,7 @@ reports' `honesty_note`:
 
 ```bash
 bun install            # frozen dependency lock; Bun 1.3.11
-bash scripts/fetch-data.sh    # ~150MB transient downloads (NESO, OGL) → ~4MB kept
+bash scripts/fetch-data.sh    # ~150MB transient downloads (NESO Open Data Licence) → ~4MB kept
 bun run eval           # rebuilds TRACE-C reports + hash-checked baseline comparison
 bun run check:core     # 15 Bun tests + types + full evidence provenance
 ```
@@ -172,5 +173,6 @@ relational anomaly detection) with a frozen blind hold-out protocol on public
 grid telemetry. Method notes and result tables above match the committed
 reports under `data/reports/`.
 
-Data © NESO, Open Government Licence v3.0.  
+Data © NESO, NESO Open Data Licence.
+Supported by National Energy SO Open Data.
 Code © Mars Arch / Matthew Faucher, MIT License (see `LICENSE`).
