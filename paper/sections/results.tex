@@ -1,4 +1,5 @@
 \section{Results}
+\label{sec:results}
 
 \subsection{Empirical rank diagnostics and selection}
 
@@ -12,6 +13,10 @@ machine-readable report). These are descriptive empirical rank diagnostics.
 Autocorrelation, drift, reused references, and known events rule out treating
 them as proof of uniform $p$-values, coverage, or false-discovery control
 \citep{shafer2008tutorial,bates2023conformaloutliers}.
+Figure~\ref{fig:rank-diagnostics} shows the same diagnostics across all five
+detectors under the shared scoring envelope.
+
+\input{generated/fig-rank-diagnostics}
 
 BH selected no windows in either reported TRACE-C segment, so the disclosed
 record fallback ran. The 2019 development segment contains two selected alerts
@@ -22,7 +27,10 @@ hypothesis-test guarantee \citep{renyi1962records}. The absence of later records
 despite several small rank values is evidence of record saturation: once a high
 aggregate score enters the growing history, the rule becomes increasingly hard
 to trigger. Zero alerts is therefore a substantive frozen result, not evidence
-that 2020 lacked unusual windows.
+that 2020 lacked unusual windows. Figure~\ref{fig:holdout-timeline} plots the
+full frozen segment with the post-hoc event annotations.
+
+\input{generated/fig-holdout-timeline}
 
 \begingroup
 \AtBeginEnvironment{tabular}{%

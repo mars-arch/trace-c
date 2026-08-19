@@ -9,13 +9,16 @@
 LATEXMK := latexmk -cd -pdf -interaction=nonstopmode -halt-on-error
 BUNDLE  := arxiv/trace-c-arxiv.tar.gz
 
-.PHONY: pdf tables check arxiv clean
+.PHONY: pdf tables figures check arxiv clean
 
-pdf: tables
+pdf: tables figures
 	$(LATEXMK) main.tex
 
 tables:
 	cd .. && bun run scripts/generate-paper-tables.ts
+
+figures:
+	cd .. && bun run scripts/generate-paper-figures.ts
 
 # Generated tables are evidence artifacts: regenerating from the committed
 # JSON reports must be a no-op. A diff here means the tables were hand-edited
