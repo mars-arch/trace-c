@@ -29,11 +29,12 @@ test("committed evidence reports contain no wall-clock rebuild timestamp", () =>
 test("release-facing NESO metadata uses the official licence and attribution", () => {
   const readme = readFileSync(join(import.meta.dir, "../README.md"), "utf8");
   const packageJson = readFileSync(join(import.meta.dir, "../package.json"), "utf8");
+  const fetchScript = readFileSync(join(import.meta.dir, "../scripts/fetch-data.sh"), "utf8");
   const realReport = JSON.parse(
     readFileSync(join(import.meta.dir, "../data/reports/trace-c-real-report.json"), "utf8")
   );
 
-  for (const text of [readme, packageJson]) {
+  for (const text of [readme, packageJson, fetchScript]) {
     expect(text).toContain("NESO Open Data Licence");
     expect(text).toContain("Supported by National Energy SO Open Data");
     expect(text).not.toContain("Open Government Licence");

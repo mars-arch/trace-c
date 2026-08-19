@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Fetch the NESO datasets (Open Government Licence) needed to reproduce
-# every result in this repo: half-hourly demand CSVs + 1-second frequency
-# aggregated to per-period features. ~150MB of transient downloads; what is
-# kept on disk is ~4MB.
+# Fetch the NESO datasets (NESO Open Data Licence) needed to reproduce every
+# result in this repo: half-hourly demand CSVs + 1-second frequency aggregated
+# to per-period features. Supported by National Energy SO Open Data. ~150MB of
+# transient downloads; what is kept on disk is ~4MB.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p data/real
