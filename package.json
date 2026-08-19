@@ -1,0 +1,49 @@
+{
+  "name": "trace-c",
+  "version": "0.1.0",
+  "private": false,
+  "license": "MIT",
+  "author": "Mars Arch / Matthew Faucher",
+  "type": "module",
+  "description": "TRACE-C — copula-calibrated temporal relational anomaly detection with rolling-conformal p-values, validated on real GB grid telemetry (NESO, OGL) with a frozen blind hold-out year",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mars-arch/trace-c.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mars-arch/trace-c/issues"
+  },
+  "homepage": "https://github.com/mars-arch/trace-c#readme",
+  "keywords": [
+    "anomaly-detection",
+    "conformal-prediction",
+    "copula",
+    "multi-stream",
+    "time-series",
+    "neso",
+    "trace-c"
+  ],
+  "engines": {
+    "bun": ">=1.3.11"
+  },
+  "scripts": {
+    "fetch": "bash scripts/fetch-data.sh",
+    "export:series": "bun run scripts/export-series.ts",
+    "train:baselines": "python3 scripts/train_baselines.py",
+    "eval:real": "bun run scripts/eval-real.ts",
+    "eval:holdout": "bun run scripts/eval-holdout.ts",
+    "eval:baselines": "bun run export:series && bun run scripts/eval-baselines.ts",
+    "eval": "bun run eval:real && bun run eval:holdout && bun run eval:baselines",
+    "baselines": "bun run export:series && bun run train:baselines && bun run scripts/eval-baselines.ts",
+    "tb:baselines": "python3 scripts/log_tensorboard.py",
+    "test:ts": "bun test",
+    "test:py": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py'",
+    "test": "bun run test:ts && bun run test:py",
+    "typecheck": "tsc -p tsconfig.json",
+    "check": "bun run test && bun run typecheck"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.14",
+    "typescript": "5.9.3"
+  }
+}

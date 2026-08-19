@@ -1,0 +1,583 @@
+{
+  "protocol": "Post-hoc comparison on the same aligned series, W=4 windows, Jan-Apr 2019 fit cutoff, Jul-Dec 2019 development segment, 2020 segment and event annotations as TRACE-C. Baseline raw scores use a growing strictly-prior rank score after a 40-window post-fit warm-up, then record-rule selection without a daily budget. Counts labelled expected_null assume exchangeable scores and are diagnostics, not a proof under seasonality/autocorrelation. TRACE-C differs: trailing 240-window channel ranks, Fisher combination, a growing outer rank, BH-first fallback, and a 2/day budget. Baselines use global train standardization (regime-naive by design). conv_ae = Keras-io-style time-series autoencoder ported to Torch (seed 42, fixed 40 epochs); PCA k=3; IsolationForest(200, seed 42) on window mean/std features; Spectral Residual recomputed from trailing context ending at every window.",
+  "provenance": "TRACE-C's 2020 result was commit-frozen before inspection. The external baseline suite was created after those results were visible; its 2019/2020 rows are therefore post-hoc comparisons, not blind validations.",
+  "comparability": "Shared: source rows, sensor set, window size, fit/test dates, causal scoring, event definitions, strictly-prior ranking. Different: model-specific score construction, reference admission, TRACE-C's rolling/Fisher layer, BH attempt and daily budget.",
+  "score_artifact": {
+    "schema_version": 2,
+    "seed": 42,
+    "series_sha256": "fff248728426e6fc3861b1ba6d7cd50904a9b52a01ffa04504434356e5b3ab95",
+    "trainer_sha256": "a984d8c4f7445399a35fff16638302dc22360140d10713e492b6863f9e59deff",
+    "versions": {
+      "numpy": "2.2.6",
+      "python": "3.13.1",
+      "scikit_learn": "1.6.1",
+      "torch": "2.12.0"
+    },
+    "n_windows": 8772
+  },
+  "baselines": [
+    {
+      "detector": "conv_ae",
+      "scored_windows": 7292,
+      "y2019": {
+        "windows": 2208,
+        "selection": "record_rule_no_daily_budget",
+        "record_alerts": 1,
+        "expected_null_alerts": 1.39,
+        "null_reference_assumption": "exchangeable_scores",
+        "calibration": [
+          {
+            "level": 0.05,
+            "observed": 71,
+            "expected_null": 110.4
+          },
+          {
+            "level": 0.01,
+            "observed": 15,
+            "expected_null": 22.1
+          }
+        ],
+        "known_events": [
+          {
+            "id": "GB-BLACKOUT-2019-08-09",
+            "rank": 1,
+            "best_p": 0.00083,
+            "alerted": true,
+            "matched_windows": 5,
+            "best_window": {
+              "w": 2647,
+              "date": "2019-08-09",
+              "period_from": 31
+            }
+          },
+          {
+            "id": "STORM-ATIYAH-2019-12-08",
+            "rank": 34,
+            "best_p": 0.02629,
+            "alerted": false,
+            "matched_windows": 12,
+            "best_window": {
+              "w": 4102,
+              "date": "2019-12-08",
+              "period_from": 41
+            }
+          }
+        ]
+      },
+      "y2020": {
+        "windows": 4392,
+        "selection": "record_rule_no_daily_budget",
+        "record_alerts": 0,
+        "expected_null_alerts": 0.91,
+        "null_reference_assumption": "exchangeable_scores",
+        "calibration": [
+          {
+            "level": 0.05,
+            "observed": 330,
+            "expected_null": 219.6
+          },
+          {
+            "level": 0.01,
+            "observed": 60,
+            "expected_null": 43.9
+          }
+        ],
+        "known_events": [
+          {
+            "id": "STORM-CIARA-2020-02-09",
+            "rank": 1,
+            "best_p": 0.00059,
+            "alerted": false,
+            "matched_windows": 24,
+            "best_window": {
+              "w": 4852,
+              "date": "2020-02-09",
+              "period_from": 17
+            }
+          },
+          {
+            "id": "STORM-DENNIS-2020-02-15",
+            "rank": 29,
+            "best_p": 0.00546,
+            "alerted": false,
+            "matched_windows": 24,
+            "best_window": {
+              "w": 4921,
+              "date": "2020-02-15",
+              "period_from": 5
+            }
+          },
+          {
+            "id": "COVID-LOCKDOWN-2020-03-23",
+            "rank": 46,
+            "best_p": 0.00807,
+            "alerted": false,
+            "matched_windows": 168,
+            "best_window": {
+              "w": 5527,
+              "date": "2020-04-05",
+              "period_from": 31
+            }
+          }
+        ],
+        "calibration_precovid": [
+          {
+            "level": 0.05,
+            "observed": 27,
+            "expected_null": 45
+          },
+          {
+            "level": 0.01,
+            "observed": 4,
+            "expected_null": 9
+          }
+        ]
+      }
+    },
+    {
+      "detector": "iforest",
+      "scored_windows": 7292,
+      "y2019": {
+        "windows": 2208,
+        "selection": "record_rule_no_daily_budget",
+        "record_alerts": 0,
+        "expected_null_alerts": 1.39,
+        "null_reference_assumption": "exchangeable_scores",
+        "calibration": [
+          {
+            "level": 0.05,
+            "observed": 71,
+            "expected_null": 110.4
+          },
+          {
+            "level": 0.01,
+            "observed": 13,
+            "expected_null": 22.1
+          }
+        ],
+        "known_events": [
+          {
+            "id": "GB-BLACKOUT-2019-08-09",
+            "rank": 2,
+            "best_p": 0.00331,
+            "alerted": false,
+            "matched_windows": 5,
+            "best_window": {
+              "w": 2647,
+              "date": "2019-08-09",
+              "period_from": 31
+            }
+          },
+          {
+            "id": "STORM-ATIYAH-2019-12-08",
+            "rank": 3,
+            "best_p": 0.00377,
+            "alerted": false,
+            "matched_windows": 12,
+            "best_window": {
+              "w": 4095,
+              "date": "2019-12-08",
+              "period_from": 13
+            }
+          }
+        ]
+      },
+      "y2020": {
+        "windows": 4392,
+        "selection": "record_rule_no_daily_budget",
+        "record_alerts": 1,
+        "expected_null_alerts": 0.91,
+        "null_reference_assumption": "exchangeable_scores",
+        "calibration": [
+          {
+            "level": 0.05,
+            "observed": 304,
+            "expected_null": 219.6
+          },
+          {
+            "level": 0.01,
+            "observed": 69,
+            "expected_null": 43.9
+          }
+        ],
+        "known_events": [
+          {
+            "id": "STORM-CIARA-2020-02-09",
+            "rank": 10,
+            "best_p": 0.00117,
+            "alerted": false,
+            "matched_windows": 24,
+            "best_window": {
+              "w": 4852,
+              "date": "2020-02-09",
+              "period_from": 17
+            }
+          },
+          {
+            "id": "STORM-DENNIS-2020-02-15",
+            "rank": 178,
+            "best_p": 0.02526,
+            "alerted": false,
+            "matched_windows": 24,
+            "best_window": {
+              "w": 4923,
+              "date": "2020-02-15",
+              "period_from": 13
+            }
+          },
+          {
+            "id": "COVID-LOCKDOWN-2020-03-23",
+            "rank": 1,
+            "best_p": 0.00024,
+            "alerted": true,
+            "matched_windows": 168,
+            "best_window": {
+              "w": 5527,
+              "date": "2020-04-05",
+              "period_from": 31
+            }
+          }
+        ],
+        "calibration_precovid": [
+          {
+            "level": 0.05,
+            "observed": 49,
+            "expected_null": 45
+          },
+          {
+            "level": 0.01,
+            "observed": 10,
+            "expected_null": 9
+          }
+        ]
+      }
+    },
+    {
+      "detector": "pca",
+      "scored_windows": 7292,
+      "y2019": {
+        "windows": 2208,
+        "selection": "record_rule_no_daily_budget",
+        "record_alerts": 1,
+        "expected_null_alerts": 1.39,
+        "null_reference_assumption": "exchangeable_scores",
+        "calibration": [
+          {
+            "level": 0.05,
+            "observed": 65,
+            "expected_null": 110.4
+          },
+          {
+            "level": 0.01,
+            "observed": 13,
+            "expected_null": 22.1
+          }
+        ],
+        "known_events": [
+          {
+            "id": "GB-BLACKOUT-2019-08-09",
+            "rank": 1,
+            "best_p": 0.00083,
+            "alerted": true,
+            "matched_windows": 5,
+            "best_window": {
+              "w": 2647,
+              "date": "2019-08-09",
+              "period_from": 31
+            }
+          },
+          {
+            "id": "STORM-ATIYAH-2019-12-08",
+            "rank": 12,
+            "best_p": 0.00829,
+            "alerted": false,
+            "matched_windows": 12,
+            "best_window": {
+              "w": 4093,
+              "date": "2019-12-08",
+              "period_from": 5
+            }
+          }
+        ]
+      },
+      "y2020": {
+        "windows": 4392,
+        "selection": "record_rule_no_daily_budget",
+        "record_alerts": 0,
+        "expected_null_alerts": 0.91,
+        "null_reference_assumption": "exchangeable_scores",
+        "calibration": [
+          {
+            "level": 0.05,
+            "observed": 359,
+            "expected_null": 219.6
+          },
+          {
+            "level": 0.01,
+            "observed": 77,
+            "expected_null": 43.9
+          }
+        ],
+        "known_events": [
+          {
+            "id": "STORM-CIARA-2020-02-09",
+            "rank": 12,
+            "best_p": 0.00264,
+            "alerted": false,
+            "matched_windows": 24,
+            "best_window": {
+              "w": 4852,
+              "date": "2020-02-09",
+              "period_from": 17
+            }
+          },
+          {
+            "id": "STORM-DENNIS-2020-02-15",
+            "rank": 34,
+            "best_p": 0.00516,
+            "alerted": false,
+            "matched_windows": 24,
+            "best_window": {
+              "w": 4927,
+              "date": "2020-02-15",
+              "period_from": 29
+            }
+          },
+          {
+            "id": "COVID-LOCKDOWN-2020-03-23",
+            "rank": 22,
+            "best_p": 0.00391,
+            "alerted": false,
+            "matched_windows": 168,
+            "best_window": {
+              "w": 5526,
+              "date": "2020-04-05",
+              "period_from": 27
+            }
+          }
+        ],
+        "calibration_precovid": [
+          {
+            "level": 0.05,
+            "observed": 82,
+            "expected_null": 45
+          },
+          {
+            "level": 0.01,
+            "observed": 16,
+            "expected_null": 9
+          }
+        ]
+      }
+    },
+    {
+      "detector": "spectral_residual",
+      "scored_windows": 7292,
+      "y2019": {
+        "windows": 2208,
+        "selection": "record_rule_no_daily_budget",
+        "record_alerts": 2,
+        "expected_null_alerts": 1.39,
+        "null_reference_assumption": "exchangeable_scores",
+        "calibration": [
+          {
+            "level": 0.05,
+            "observed": 160,
+            "expected_null": 110.4
+          },
+          {
+            "level": 0.01,
+            "observed": 29,
+            "expected_null": 22.1
+          }
+        ],
+        "known_events": [
+          {
+            "id": "GB-BLACKOUT-2019-08-09",
+            "rank": 2,
+            "best_p": 0.00083,
+            "alerted": true,
+            "matched_windows": 5,
+            "best_window": {
+              "w": 2647,
+              "date": "2019-08-09",
+              "period_from": 31
+            }
+          },
+          {
+            "id": "STORM-ATIYAH-2019-12-08",
+            "rank": 26,
+            "best_p": 0.00828,
+            "alerted": false,
+            "matched_windows": 12,
+            "best_window": {
+              "w": 4097,
+              "date": "2019-12-08",
+              "period_from": 21
+            }
+          }
+        ]
+      },
+      "y2020": {
+        "windows": 4392,
+        "selection": "record_rule_no_daily_budget",
+        "record_alerts": 0,
+        "expected_null_alerts": 0.91,
+        "null_reference_assumption": "exchangeable_scores",
+        "calibration": [
+          {
+            "level": 0.05,
+            "observed": 304,
+            "expected_null": 219.6
+          },
+          {
+            "level": 0.01,
+            "observed": 51,
+            "expected_null": 43.9
+          }
+        ],
+        "known_events": [
+          {
+            "id": "STORM-CIARA-2020-02-09",
+            "rank": 12,
+            "best_p": 0.00322,
+            "alerted": false,
+            "matched_windows": 24,
+            "best_window": {
+              "w": 4851,
+              "date": "2020-02-09",
+              "period_from": 13
+            }
+          },
+          {
+            "id": "STORM-DENNIS-2020-02-15",
+            "rank": 38,
+            "best_p": 0.00802,
+            "alerted": false,
+            "matched_windows": 24,
+            "best_window": {
+              "w": 4932,
+              "date": "2020-02-16",
+              "period_from": 1
+            }
+          },
+          {
+            "id": "COVID-LOCKDOWN-2020-03-23",
+            "rank": 6,
+            "best_p": 0.00201,
+            "alerted": false,
+            "matched_windows": 168,
+            "best_window": {
+              "w": 5426,
+              "date": "2020-03-28",
+              "period_from": 9
+            }
+          }
+        ],
+        "calibration_precovid": [
+          {
+            "level": 0.05,
+            "observed": 93,
+            "expected_null": 45
+          },
+          {
+            "level": 0.01,
+            "observed": 10,
+            "expected_null": 9
+          }
+        ]
+      }
+    }
+  ],
+  "trace_c": {
+    "detector": "trace_c (ours)",
+    "y2019": {
+      "windows": 2208,
+      "selection": "record_rule",
+      "alerts": 2,
+      "expected_null_alerts": 1.19,
+      "budget_dropped": 0,
+      "known_events": [
+        {
+          "id": "GB-BLACKOUT-2019-08-09",
+          "rank": 143,
+          "best_p": 0.06042,
+          "alerted": false
+        },
+        {
+          "id": "STORM-ATIYAH-2019-12-08",
+          "rank": 1,
+          "best_p": 0.00035,
+          "alerted": true
+        }
+      ],
+      "calibration": [
+        {
+          "level": 0.05,
+          "observed": 120,
+          "expected_null": 110.4
+        },
+        {
+          "level": 0.01,
+          "observed": 23,
+          "expected_null": 22.1
+        }
+      ]
+    },
+    "y2020": {
+      "windows": 4392,
+      "selection": "record_rule",
+      "alerts": 0,
+      "expected_null_alerts": 0.87,
+      "budget_dropped_full_span": 0,
+      "known_events": [
+        {
+          "id": "STORM-CIARA-2020-02-09",
+          "rank": 44,
+          "best_p": 0.012058,
+          "alerted": false
+        },
+        {
+          "id": "STORM-DENNIS-2020-02-15",
+          "rank": 137,
+          "best_p": 0.033217,
+          "alerted": false
+        },
+        {
+          "id": "COVID-LOCKDOWN-2020-03-23",
+          "rank": 45,
+          "best_p": 0.012559,
+          "alerted": false
+        }
+      ],
+      "calibration": [
+        {
+          "level": 0.05,
+          "observed": 205,
+          "expected_null": 219.6,
+          "windows": 4392
+        },
+        {
+          "level": 0.01,
+          "observed": 39,
+          "expected_null": 43.9,
+          "windows": 4392
+        }
+      ],
+      "calibration_precovid": [
+        {
+          "level": 0.05,
+          "observed": 50,
+          "expected_null": 45,
+          "windows": 900
+        },
+        {
+          "level": 0.01,
+          "observed": 3,
+          "expected_null": 9,
+          "windows": 900
+        }
+      ]
+    }
+  }
+}

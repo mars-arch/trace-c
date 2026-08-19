@@ -1,0 +1,6 @@
+# Exact environment used to regenerate the committed baseline artifacts.
+numpy==2.2.6
+scikit-learn==1.6.1
+torch==2.12.0
+tensorboard==2.21.0
+tensorboardX==2.6.5
