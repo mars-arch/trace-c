@@ -34,6 +34,7 @@
     "eval:real": "bun run scripts/eval-real.ts",
     "eval:holdout": "bun run scripts/eval-holdout.ts",
     "eval:ablation": "bun run scripts/eval-ablation.ts",
+    "eval:v3": "bun run scripts/eval-v3.ts",
     "eval:baselines": "bun run export:series && bun run scripts/eval-baselines.ts",
     "eval": "bun run eval:real && bun run eval:holdout && bun run eval:baselines && bun run eval:ablation",
     "baselines": "bun run train:baselines && bun run scripts/eval-baselines.ts",

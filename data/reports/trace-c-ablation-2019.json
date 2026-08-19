@@ -4,7 +4,7 @@
     "generator_sources_sha256": {
       "src/ablation.ts": "a9841ba9f999aa1077131eb13366c3181ecb80343d1c670b7522116bf392330c",
       "src/real.ts": "50bd1bc0035b7b869d1738bf907537f02780ae3dc172d3ccd9162115e07c7477",
-      "src/trace-c.ts": "a359c629fe298dcbb672610ef85665a31e673b4eb0687e69ea555e2c87951f45"
+      "src/trace-c.ts": "ef7b0bdeed408c34c3e462e48b4b90d0b05023cba6c13b8aa6cff3b45a08a931"
     },
     "source_manifest_sha256": "b7e00ebb1aed1ccd68b9b113c9e749ac7ce535c17ac99a34e48a064c674edf0e"
   },

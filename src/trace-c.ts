@@ -216,6 +216,12 @@ export type TraceCInput = {
   sRefMin?: number; // min prior S values before conformal p is emitted (default 40)
   /** Subset of built-in channels to rank and combine. Default: all three. */
   enabledChannels?: readonly TraceCChannel[];
+  /** Fisher sum (default, frozen v2) or strongest single channel rank. */
+  combine?: "fisher" | "max_channel";
+  /** Frozen v2: BH then record, then budget. v3: budget scored test windows. */
+  selectionMode?: "bh_then_record" | "daily_budget";
+  /** With daily_budget, only consider windows with p ≤ pGate. Default: no gate. */
+  pGate?: number;
   /** Optional extra per-WINDOW channel scores (e.g. discrete-sequence NLL). */
   extraChannels?: Record<string, (number | null)[]>;
 };
@@ -246,7 +252,7 @@ export type TraceCAlert = {
 export type TraceCResult = {
   windows: TraceCWindow[];
   alerts: TraceCAlert[]; // post-selection, post-budget, sorted by p then S
-  selection: "bh" | "record_rule";
+  selection: "bh" | "record_rule" | "daily_budget";
   fdr_pass_count: number;
   expected_null_alerts: number; // what the selection rule would fire on pure noise
   budget_dropped: number;
@@ -276,6 +282,14 @@ export function runTraceC(input: TraceCInput): TraceCResult {
   const perDay = input.periodsPerDay ?? W;
   const enabled = resolveEnabledChannels(input.enabledChannels);
   const enabledSet = new Set<string>(enabled);
+  const combine = input.combine ?? "fisher";
+  if (combine !== "fisher" && combine !== "max_channel") {
+    throw new Error(`unknown combine ${combine}`);
+  }
+  const selectionMode = input.selectionMode ?? "bh_then_record";
+  if (selectionMode !== "bh_then_record" && selectionMode !== "daily_budget") {
+    throw new Error(`unknown selectionMode ${selectionMode}`);
+  }
   const { trainEnd, calEnd } = input.splits;
   if (!(trainEnd > 0 && calEnd > trainEnd && calEnd < N)) {
     throw new Error("bad splits");
@@ -484,16 +498,19 @@ export function runTraceC(input: TraceCInput): TraceCResult {
     if (chansReady && anyChan) {
       const rz: Record<string, number> = {};
       let fisher = 0;
+      let maxTerm = 0;
       for (const cn of chanNames) {
         const v = x.channels[cn];
         if (v == null) continue;
         const arr = refSorted[cn]!;
         const pc = (1 + countGE(arr, v)) / (arr.length + 1);
         rz[cn] = Number((-Math.log10(pc)).toFixed(3)); // display: −log10 rank-p
-        fisher += -2 * Math.log(pc);
+        const term = -2 * Math.log(pc);
+        fisher += term;
+        if (term > maxTerm) maxTerm = term;
       }
       x.channelsRz = rz;
-      x.S = Number(fisher.toFixed(4));
+      x.S = Number((combine === "max_channel" ? maxTerm : fisher).toFixed(4));
       if (priorS.length >= S_REF_MIN) {
         x.p = (1 + countGE(priorS, x.S)) / (priorS.length + 1); // exact
         x.pFloor = 1 / (priorS.length + 1);
@@ -524,23 +541,36 @@ export function runTraceC(input: TraceCInput): TraceCResult {
   // rule ran.
   const byP = [...testWins].sort((a, b) => a.p! - b.p! || b.S! - a.S!);
   const m = byP.length;
-  let cut = -1;
-  for (let k = m - 1; k >= 0; k--) {
-    if (byP[k]!.p! <= (q * (k + 1)) / m) {
-      cut = k;
-      break;
+  let fdrPass: TraceCWindow[] = [];
+  let selection: "bh" | "record_rule" | "daily_budget" = "bh";
+  let expectedNullAlerts = 0;
+  if (selectionMode === "daily_budget") {
+    selection = "daily_budget";
+    const gate = input.pGate;
+    if (gate != null && !(gate > 0 && gate <= 1)) {
+      throw new Error("pGate must be in (0, 1]");
     }
+    fdrPass = gate == null ? byP : byP.filter((x) => x.p! <= gate);
+    const testDays = new Set(fdrPass.map((x) => Math.floor(x.t0 / perDay))).size;
+    expectedNullAlerts = budget * testDays;
+  } else {
+    let cut = -1;
+    for (let k = m - 1; k >= 0; k--) {
+      if (byP[k]!.p! <= (q * (k + 1)) / m) {
+        cut = k;
+        break;
+      }
+    }
+    fdrPass = cut >= 0 ? byP.slice(0, cut + 1) : [];
+    if (!fdrPass.length) {
+      fdrPass = byP.filter((x) => x.p! <= x.pFloor! + 1e-15);
+      selection = "record_rule";
+    }
+    expectedNullAlerts =
+      selection === "record_rule"
+        ? testWins.reduce((acc, x) => acc + (x.pFloor ?? 0), 0)
+        : q * fdrPass.length;
   }
-  let fdrPass = cut >= 0 ? byP.slice(0, cut + 1) : [];
-  let selection: "bh" | "record_rule" = "bh";
-  if (!fdrPass.length) {
-    fdrPass = byP.filter((x) => x.p! <= x.pFloor! + 1e-15);
-    selection = "record_rule";
-  }
-  const expectedNullAlerts =
-    selection === "record_rule"
-      ? testWins.reduce((acc, x) => acc + (x.pFloor ?? 0), 0)
-      : q * fdrPass.length;
 
   // Hard operator-attention budget per day (keep lowest-p per day; count drops)
   const byDay = new Map<number, TraceCWindow[]>();

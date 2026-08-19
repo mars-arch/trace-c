@@ -63,3 +63,35 @@ describe("runTraceC enabledChannels", () => {
     ).toThrow("unknown channel");
   });
 });
+
+describe("runTraceC v3 combine and selection", () => {
+  test("max_channel uses only the strongest channel rank, not the Fisher sum", () => {
+    const fisher = firstScored(toyInput());
+    const maxChannel = firstScored(toyInput({ combine: "max_channel" }));
+    const channelScores = Object.values(maxChannel.channelsRz ?? {}).map(
+      (rz) => 2 * rz * Math.log(10)
+    );
+    expect(maxChannel.S).toBeCloseTo(Math.max(...channelScores), 2);
+    expect(maxChannel.S).not.toEqual(fisher.S);
+  });
+
+  test("daily_budget can alert windows that are not records", () => {
+    const record = runTraceC(toyInput());
+    const budgeted = runTraceC(toyInput({ selectionMode: "daily_budget" }));
+    expect(record.selection).toBe("record_rule");
+    expect(budgeted.selection).toBe("daily_budget");
+    expect(budgeted.alerts.length).toBeGreaterThan(record.alerts.length);
+    const recordWs = new Set(record.alerts.map((a) => a.w));
+    expect(budgeted.alerts.some((a) => !recordWs.has(a.w))).toBe(true);
+  });
+
+  test("rejects an unknown combine or selectionMode", () => {
+    expect(() => runTraceC(toyInput({ combine: "nope" as TraceCInput["combine"] }))).toThrow(
+      "combine"
+    );
+    expect(() =>
+      runTraceC(toyInput({ selectionMode: "nope" as TraceCInput["selectionMode"] }))
+    ).toThrow("selectionMode");
+  });
+});
+

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  applyDailyBudget,
   assertBaselineScoreArtifactCurrent,
   conformalizeBaselineScores,
   rankBaselineWindows,
@@ -70,6 +71,22 @@ describe("conformalizeBaselineScores", () => {
 });
 
 describe("rankBaselineWindows", () => {
+  test("keeps two lowest-p windows per day block", () => {
+    const kept = applyDailyBudget(
+      [
+        { w: 0, p: 0.2, pFloor: 0.1, score: 1 },
+        { w: 1, p: 0.01, pFloor: 0.1, score: 3 },
+        { w: 2, p: 0.05, pFloor: 0.1, score: 2 },
+        { w: 12, p: 0.4, pFloor: 0.1, score: 1 },
+        { w: 13, p: 0.02, pFloor: 0.1, score: 4 },
+      ],
+      (w) => w * 4,
+      2,
+      48
+    );
+    expect([...kept].sort((a, b) => a - b)).toEqual([1, 2, 12, 13]);
+  });
+
   test("breaks equal conformal p-values by the more anomalous raw score", () => {
     const ranked = rankBaselineWindows([
       { w: 10, p: 0.01, pFloor: 0.001, score: 4 },

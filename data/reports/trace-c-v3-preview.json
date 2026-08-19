@@ -1,0 +1,404 @@
+{
+  "provenance": {
+    "schema_version": 1,
+    "generator_sources_sha256": {
+      "src/holdout.ts": "2ec74767211fc5c1b64693348f65803a1d4750ffaf04df47334fa5a7dae669d8",
+      "src/real.ts": "50bd1bc0035b7b869d1738bf907537f02780ae3dc172d3ccd9162115e07c7477",
+      "src/trace-c.ts": "ef7b0bdeed408c34c3e462e48b4b90d0b05023cba6c13b8aa6cff3b45a08a931",
+      "src/v3.ts": "b809c9ead60c87414fe70ca0001fcd9d9fd01c2ad72a6f3c295b4ec5218e0daa"
+    },
+    "source_manifest_sha256": "b7e00ebb1aed1ccd68b9b113c9e749ac7ce535c17ac99a34e48a064c674edf0e"
+  },
+  "protocol": "Peek-informed v3 preview, not a hold-out. combine=max_channel and selectionMode=daily_budget were chosen after the 2019 channel ablation and after inspecting 2020 record-rule saturation. Frozen v2 reports are unmodified. 2021 is the first legitimate test of v3.",
+  "frozen_2020_record_alerts": 0,
+  "variants": {
+    "v2_fisher_record": {
+      "knobs": {
+        "combine": "fisher",
+        "selectionMode": "bh_then_record",
+        "pGate": null
+      },
+      "y2019": {
+        "selection": "record_rule",
+        "alerts_total": 2,
+        "expected_null_alerts": 1.19,
+        "known_events": [
+          {
+            "id": "GB-BLACKOUT-2019-08-09",
+            "rank": 143,
+            "alerted": false,
+            "best_p": 0.06042,
+            "lead_channel": "temporal"
+          },
+          {
+            "id": "STORM-ATIYAH-2019-12-08",
+            "rank": 1,
+            "alerted": true,
+            "best_p": 0.00035,
+            "lead_channel": "local"
+          }
+        ]
+      },
+      "y2020": {
+        "selection": "record_rule",
+        "alerts_total": 0,
+        "expected_null_alerts": 2.06,
+        "known_events": [
+          {
+            "id": "STORM-CIARA-2020-02-09",
+            "rank": 44,
+            "alerted": false,
+            "best_p": 0.01206,
+            "lead_channel": "temporal"
+          },
+          {
+            "id": "STORM-DENNIS-2020-02-15",
+            "rank": 137,
+            "alerted": false,
+            "best_p": 0.03322,
+            "lead_channel": "local"
+          },
+          {
+            "id": "COVID-LOCKDOWN-2020-03-23",
+            "rank": 45,
+            "alerted": false,
+            "best_p": 0.01256,
+            "lead_channel": "local"
+          }
+        ]
+      }
+    },
+    "v3_fisher_budget_p01": {
+      "knobs": {
+        "combine": "fisher",
+        "selectionMode": "daily_budget",
+        "pGate": 0.01
+      },
+      "y2019": {
+        "selection": "daily_budget",
+        "alerts_total": 22,
+        "expected_null_alerts": 40,
+        "known_events": [
+          {
+            "id": "GB-BLACKOUT-2019-08-09",
+            "rank": 143,
+            "alerted": false,
+            "best_p": 0.06042,
+            "lead_channel": "temporal"
+          },
+          {
+            "id": "STORM-ATIYAH-2019-12-08",
+            "rank": 1,
+            "alerted": true,
+            "best_p": 0.00035,
+            "lead_channel": "local"
+          }
+        ]
+      },
+      "y2020": {
+        "selection": "daily_budget",
+        "alerts_total": 37,
+        "expected_null_alerts": 100,
+        "known_events": [
+          {
+            "id": "STORM-CIARA-2020-02-09",
+            "rank": 44,
+            "alerted": false,
+            "best_p": 0.01206,
+            "lead_channel": "temporal"
+          },
+          {
+            "id": "STORM-DENNIS-2020-02-15",
+            "rank": 137,
+            "alerted": false,
+            "best_p": 0.03322,
+            "lead_channel": "local"
+          },
+          {
+            "id": "COVID-LOCKDOWN-2020-03-23",
+            "rank": 45,
+            "alerted": false,
+            "best_p": 0.01256,
+            "lead_channel": "local"
+          }
+        ]
+      }
+    },
+    "v3_max_channel_budget_p01": {
+      "knobs": {
+        "combine": "max_channel",
+        "selectionMode": "daily_budget",
+        "pGate": 0.01
+      },
+      "y2019": {
+        "selection": "daily_budget",
+        "alerts_total": 0,
+        "expected_null_alerts": 0,
+        "known_events": [
+          {
+            "id": "GB-BLACKOUT-2019-08-09",
+            "rank": 93,
+            "alerted": false,
+            "best_p": 0.05,
+            "lead_channel": "temporal"
+          },
+          {
+            "id": "STORM-ATIYAH-2019-12-08",
+            "rank": 5,
+            "alerted": false,
+            "best_p": 0.01179,
+            "lead_channel": "local"
+          }
+        ]
+      },
+      "y2020": {
+        "selection": "daily_budget",
+        "alerts_total": 0,
+        "expected_null_alerts": 0,
+        "known_events": [
+          {
+            "id": "STORM-CIARA-2020-02-09",
+            "rank": 61,
+            "alerted": false,
+            "best_p": 0.02227,
+            "lead_channel": "temporal"
+          },
+          {
+            "id": "STORM-DENNIS-2020-02-15",
+            "rank": 116,
+            "alerted": false,
+            "best_p": 0.0325,
+            "lead_channel": "temporal"
+          },
+          {
+            "id": "COVID-LOCKDOWN-2020-03-23",
+            "rank": 62,
+            "alerted": false,
+            "best_p": 0.02232,
+            "lead_channel": "copula"
+          }
+        ]
+      }
+    }
+  },
+  "matched_budget_2019": [
+    {
+      "detector": "conv_ae",
+      "y2019_budget": {
+        "alerts": 15,
+        "blackout": {
+          "id": "GB-BLACKOUT-2019-08-09",
+          "rank": 1,
+          "alerted": true
+        },
+        "atiyah": {
+          "id": "STORM-ATIYAH-2019-12-08",
+          "rank": 34,
+          "alerted": false
+        }
+      }
+    },
+    {
+      "detector": "iforest",
+      "y2019_budget": {
+        "alerts": 13,
+        "blackout": {
+          "id": "GB-BLACKOUT-2019-08-09",
+          "rank": 2,
+          "alerted": true
+        },
+        "atiyah": {
+          "id": "STORM-ATIYAH-2019-12-08",
+          "rank": 3,
+          "alerted": true
+        }
+      }
+    },
+    {
+      "detector": "pca",
+      "y2019_budget": {
+        "alerts": 13,
+        "blackout": {
+          "id": "GB-BLACKOUT-2019-08-09",
+          "rank": 1,
+          "alerted": true
+        },
+        "atiyah": {
+          "id": "STORM-ATIYAH-2019-12-08",
+          "rank": 12,
+          "alerted": true
+        }
+      }
+    },
+    {
+      "detector": "spectral_residual",
+      "y2019_budget": {
+        "alerts": 25,
+        "blackout": {
+          "id": "GB-BLACKOUT-2019-08-09",
+          "rank": 2,
+          "alerted": true
+        },
+        "atiyah": {
+          "id": "STORM-ATIYAH-2019-12-08",
+          "rank": 26,
+          "alerted": true
+        }
+      }
+    }
+  ],
+  "baseline_record_reference": [
+    {
+      "detector": "conv_ae",
+      "y2019": {
+        "blackout_rank": 1,
+        "atiyah_rank": 34,
+        "record_alerted": [
+          {
+            "id": "GB-BLACKOUT-2019-08-09",
+            "alerted": true,
+            "rank": 1
+          },
+          {
+            "id": "STORM-ATIYAH-2019-12-08",
+            "alerted": false,
+            "rank": 34
+          }
+        ]
+      },
+      "y2020": {
+        "record_alerted": [
+          {
+            "id": "STORM-CIARA-2020-02-09",
+            "alerted": false,
+            "rank": 1
+          },
+          {
+            "id": "STORM-DENNIS-2020-02-15",
+            "alerted": false,
+            "rank": 29
+          },
+          {
+            "id": "COVID-LOCKDOWN-2020-03-23",
+            "alerted": false,
+            "rank": 46
+          }
+        ]
+      }
+    },
+    {
+      "detector": "iforest",
+      "y2019": {
+        "blackout_rank": 2,
+        "atiyah_rank": 3,
+        "record_alerted": [
+          {
+            "id": "GB-BLACKOUT-2019-08-09",
+            "alerted": false,
+            "rank": 2
+          },
+          {
+            "id": "STORM-ATIYAH-2019-12-08",
+            "alerted": false,
+            "rank": 3
+          }
+        ]
+      },
+      "y2020": {
+        "record_alerted": [
+          {
+            "id": "STORM-CIARA-2020-02-09",
+            "alerted": false,
+            "rank": 10
+          },
+          {
+            "id": "STORM-DENNIS-2020-02-15",
+            "alerted": false,
+            "rank": 178
+          },
+          {
+            "id": "COVID-LOCKDOWN-2020-03-23",
+            "alerted": true,
+            "rank": 1
+          }
+        ]
+      }
+    },
+    {
+      "detector": "pca",
+      "y2019": {
+        "blackout_rank": 1,
+        "atiyah_rank": 12,
+        "record_alerted": [
+          {
+            "id": "GB-BLACKOUT-2019-08-09",
+            "alerted": true,
+            "rank": 1
+          },
+          {
+            "id": "STORM-ATIYAH-2019-12-08",
+            "alerted": false,
+            "rank": 12
+          }
+        ]
+      },
+      "y2020": {
+        "record_alerted": [
+          {
+            "id": "STORM-CIARA-2020-02-09",
+            "alerted": false,
+            "rank": 12
+          },
+          {
+            "id": "STORM-DENNIS-2020-02-15",
+            "alerted": false,
+            "rank": 34
+          },
+          {
+            "id": "COVID-LOCKDOWN-2020-03-23",
+            "alerted": false,
+            "rank": 22
+          }
+        ]
+      }
+    },
+    {
+      "detector": "spectral_residual",
+      "y2019": {
+        "blackout_rank": 2,
+        "atiyah_rank": 26,
+        "record_alerted": [
+          {
+            "id": "GB-BLACKOUT-2019-08-09",
+            "alerted": true,
+            "rank": 2
+          },
+          {
+            "id": "STORM-ATIYAH-2019-12-08",
+            "alerted": false,
+            "rank": 26
+          }
+        ]
+      },
+      "y2020": {
+        "record_alerted": [
+          {
+            "id": "STORM-CIARA-2020-02-09",
+            "alerted": false,
+            "rank": 12
+          },
+          {
+            "id": "STORM-DENNIS-2020-02-15",
+            "alerted": false,
+            "rank": 38
+          },
+          {
+            "id": "COVID-LOCKDOWN-2020-03-23",
+            "alerted": false,
+            "rank": 6
+          }
+        ]
+      }
+    }
+  ]
+}

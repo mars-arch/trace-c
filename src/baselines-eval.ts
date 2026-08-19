@@ -189,6 +189,29 @@ export function rankBaselineWindows(
   return [...scored].sort((a, b) => a.p - b.p || b.score - a.score || a.w - b.w);
 }
 
+/** Keep the `budget` lowest-p windows in each periodsPerDay block. */
+export function applyDailyBudget(
+  scored: BaselineScoredWindow[],
+  t0Of: (w: number) => number,
+  budget: number,
+  periodsPerDay: number
+): Set<number> {
+  if (budget < 1) throw new Error("budget must be at least 1");
+  const byDay = new Map<number, BaselineScoredWindow[]>();
+  for (const window of scored) {
+    const day = Math.floor(t0Of(window.w) / periodsPerDay);
+    const arr = byDay.get(day) ?? [];
+    arr.push(window);
+    byDay.set(day, arr);
+  }
+  const kept = new Set<number>();
+  for (const arr of byDay.values()) {
+    arr.sort((a, b) => a.p - b.p || b.score - a.score || a.w - b.w);
+    for (const window of arr.slice(0, budget)) kept.add(window.w);
+  }
+  return kept;
+}
+
 /**
  * Apply the baseline suite's shared growing, strictly-prior conformal layer.
  *

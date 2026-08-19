@@ -76,6 +76,12 @@ drop copula leaves it **rank 2 without an alert**; local-only is rank 3; tempora
 ranks the blackout **40** vs fused 143. The copula-form channel is an extra
 Fisher term, not the event engine. `bun run eval:ablation`.
 
+**v3 preview (peek-informed, not a hold-out):** max-channel combine plus
+2/day among \(p\le.01\). It is **not better** on these events: max-channel
+moves blackout 143→93 but yields 0 gated alerts; Fisher+\(p\le.01\) budget
+gives 22 alerts in 2019 (Atiyah yes, blackout no) vs reconstruction which
+alerts the blackout at the same gate. `bun run eval:v3`.
+
 Full machine-readable results: `data/reports/*.json` (committed).
 
 ## External baselines (post-hoc comparison)
