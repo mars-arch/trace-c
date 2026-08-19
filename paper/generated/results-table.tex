@@ -1,0 +1,48 @@
+% AUTO-GENERATED from committed TRACE-C JSON evidence. DO NOT EDIT BY HAND.
+\begin{table}[t]
+\centering
+\caption{Empirical rank-p diagnostics. Expected counts are exchangeable-score references, not time-series coverage guarantees.}
+\label{tab:trace-calibration}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Segment and threshold & Observed/reference \\
+\midrule
+2019 development, $p\leq .05$ & 120/110.4 \\
+2019 development, $p\leq .01$ & 23/22.1 \\
+2020 pre-COVID, $p\leq .05$ & 50/45.0 \\
+2020 pre-COVID, $p\leq .01$ & 3/9.0 \\
+2020 full year, $p\leq .05$ & 205/219.6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table*}[t]
+\centering
+\caption{TRACE-C event-window ranks. Labels are used only for post-hoc evaluation.}
+\label{tab:trace-events}
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Annotation & Segment & Best rank & Best $p$ & Opportunity windows \\
+\midrule
+GB frequency event & 2019 development & 143 & 0.060420 & 5 \\
+Storm Atiyah & 2019 development & 1 & 0.000350 & 12 \\
+Storm Ciara & 2020 frozen hold-out & 44 & 0.012058 & 24 \\
+Storm Dennis & 2020 frozen hold-out & 137 & 0.033217 & 24 \\
+Lockdown transition (14 days; best 2020-03-28 06:00) & 2020 frozen hold-out & 45 & 0.012559 & 168 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table}[t]
+\centering
+\caption{Externally interpreted, top-ranked 2020 windows. Neither name was a detector annotation and no 2020 window passed the frozen record rule.}
+\label{tab:post-ranked-weather}
+\begin{tabular}{@{}lrrl@{}}
+\toprule
+External interpretation & Rank & Timestamp & $p$ \\
+\midrule
+Storm Ellen (post-ranking interpretation) & 1 & 2020-08-20 03:00 & 0.000504 \\
+Storm Alex (post-ranking interpretation) & 5 & 2020-10-03 23:00 & 0.001539 \\
+\bottomrule
+\end{tabular}
+\end{table}

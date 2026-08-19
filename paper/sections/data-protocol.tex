@@ -1,0 +1,26 @@
+\section{Data and evaluation protocol}
+
+The study uses five half-hourly NESO demand-side streams and a sixth stream
+formed by aggregating one-second system-frequency data to the maximum absolute
+deviation from 50 Hz in each half-hour
+\citep{neso2019historicdemand,neso2019systemfrequency}. Data are used under
+the NESO Open Data Licence \citep{nesoOpenLicence}, with the exact attribution
+``Supported by National Energy SO Open Data.'' Source checksums,
+transformations, and report-generator provenance are committed alongside the
+machine-readable evidence.
+
+January--April 2019 is the fit segment. The remainder of 2019 is a development
+year in which window width, trailing-history parameters, and channel choices
+were disclosed as test-informed. The 2020 run was frozen before inspecting its
+events and is the blind hold-out. Windows are non-overlapping and scored
+causally against strictly prior windows. Event ranks are evaluation labels, not
+features; the outage, storm, and lockdown annotations are documented
+independently
+\citep{ofgem2020poweroutage,metoffice2020stormseason,metoffice2020stormalex,ukgov2020lockdown,ngeso2021endyear}.
+A storm name attached to a high-ranked window is a post-ranking interpretation.
+
+External baselines use the same six streams, windows, fit dates, causal score
+direction, and event intervals. They were assembled after the frozen TRACE-C
+2020 results were visible and therefore are a post-hoc comparison, not a
+second blind experiment. Event opportunity counts are reported because the
+blackout, storms, and lockdown transition cover unequal numbers of windows.

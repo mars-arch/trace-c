@@ -1,0 +1,17 @@
+Operational telemetry can contain failures that are individually unremarkable
+but jointly unusual. TRACE-C is a causal detector for this setting: robust,
+regime-conditioned marginal residuals feed local, dependence, and temporal
+channels; trailing rank calibration converts those channels to finite-sample
+scores; and Fisher combination is ranked against strictly prior windows.
+Selection attempts Benjamini--Hochberg false-discovery-rate control and records
+when it falls back to a record rule, with a per-day attention budget.
+
+We evaluate the frozen protocol on five demand-side streams and an aggregated
+system-frequency stream from Great Britain. January--April 2019 is the fit
+segment, the remainder of 2019 is development evidence, and 2020 is a blind
+hold-out. The committed diagnostics show a mixed result: TRACE-C ranks Storm
+Atiyah first and is comparatively stable in empirical rank checks, while
+reconstruction baselines isolate the short 9 August frequency event better.
+The study therefore treats exchangeability, aggregation resolution, event
+selection, and the distinction between a post-hoc label and a detector input as
+part of the result rather than as hidden assumptions.

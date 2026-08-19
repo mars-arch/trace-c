@@ -1,0 +1,28 @@
+\section{Related work}
+
+Conformal methods obtain finite-sample rank guarantees under exchangeability
+\citep{shafer2008tutorial}. For dependent observations, block and robust
+variants replace the literal permutation argument with assumptions about the
+dependence structure \citep{chernozhukov2018dependentconformal}. Outlier testing
+with conformal $p$-values makes the multiple-testing connection explicit and
+establishes useful dependence-aware FDR results \citep{bates2023conformaloutliers}.
+TRACE-C uses the rank construction as a diagnostic and states where telemetry
+violates its idealized conditions.
+
+The copula layer follows the separation of marginals and dependence introduced
+by Sklar's theorem \citep{sklar1959fonctions}; Gaussian-copula likelihoods give
+a compact relational score for the residual vector \citep{song2000gaussiancopula}.
+Fisher's combination statistic \citep{fisher1932statisticalmethods} and the
+Benjamini--Hochberg procedure \citep{benjamini1995fdr} are standard ways to
+combine evidence and select discoveries. Positive dependence and calibration
+reuse matter for the latter, motivating the explicit reference to the
+Benjamini--Yekutieli correction literature \citep{benjamini2001dependency}.
+
+The record rule is a transparent finite-history alternative to a nominal tail
+threshold; its expected count follows the classical record-value calculation
+\citep{renyi1962records}. Robust MAD scaling follows \citet{rousseeuw1993mad}.
+For comparison, we include a convolutional autoencoder
+\citep{sakurada2014autoencoders,vijay2020kerasautoencoder}, PCA reconstruction
+residuals \citep{jackson1979pcaresiduals}, Isolation Forest
+\citep{liu2008isolationforest}, and Spectral Residual
+\citep{ren2019spectralresidual}.

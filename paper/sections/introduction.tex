@@ -1,0 +1,25 @@
+\section{Introduction}
+
+Grid operators monitor many streams whose marginal behavior changes with
+season, operating regime, and demand. A useful alert should identify a
+coherent departure across streams while preserving a causal scoring rule and a
+calibrated indication of rarity. This is difficult when the data are
+autocorrelated and when the event of interest is a short transient hidden by a
+coarse aggregation interval.
+
+TRACE-C (temporal relational anomaly detection with copula calibration) makes
+three design commitments. First, it preserves magnitude in robust marginal
+residuals rather than replacing a deep excursion with its rank. Second, it
+calibrates every channel against a trailing set of strictly prior windows,
+which exposes rather than silently assumes exchangeability. Third, it separates
+the development year from a frozen 2020 hold-out. The resulting detector is an
+operational ranking and triage aid, not a claim that every small conformal
+$p$-value has nominal time-series coverage.
+
+Our contribution is an auditable protocol and evidence package: a
+copula-informed relational score, causal rank calibration, explicit selection
+fallbacks, and a reproducible comparison against common anomaly detectors.
+The results are intentionally mixed. TRACE-C detects relational weather-like
+episodes well, whereas direct reconstruction can win on an abrupt frequency
+transient. That distinction is informative about the sensor set and resolution
+as much as about the algorithm.

@@ -1,0 +1,42 @@
+% !TEX program = pdflatex
+% Canonical TRACE-C paper source. Generated tables are written by
+% scripts/generate-paper-tables.ts and must not be edited by hand.
+\documentclass[10pt,twocolumn]{article}
+
+\usepackage[margin=0.78in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[hidelinks]{hyperref}
+
+\title{TRACE-C: Copula-Calibrated Temporal Relational Anomaly Detection\\
+       for Multi-Stream Operational Telemetry}
+\author{Matthew Faucher\\Independent researcher}
+\date{19 Aug 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\input{paper/sections/abstract}
+\end{abstract}
+
+\input{paper/sections/introduction}
+\input{paper/sections/related-work}
+\input{paper/sections/method}
+\input{paper/sections/data-protocol}
+\input{paper/sections/results}
+\input{paper/sections/limitations}
+\input{paper/sections/conclusion}
+
+\section*{Code and data availability}
+The complete implementation, committed evidence reports, table generator, and
+reproduction instructions are included in the accompanying repository. The
+telemetry inputs are obtained under the NESO Open Data Licence; retained input
+checksums and report provenance are committed with the code. A public archive
+URL and DOI will be added before submission.
+
+\bibliographystyle{plainnat}
+\bibliography{paper/references}
+\end{document}

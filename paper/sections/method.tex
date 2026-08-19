@@ -1,0 +1,30 @@
+\section{Method}
+
+Let $x_{t,j}$ be the aligned value of stream $j$ at half-hour index $t$.
+For each regime and stream, TRACE-C computes a strictly-prior rolling median
+$m_{t,j}$ and median absolute deviation $d_{t,j}$, then forms
+\[
+ z_{t,j}=\operatorname{clip}\!\left(\frac{x_{t,j}-m_{t,j}}
+ {1.4826d_{t,j}},-10,10\right).
+\]
+The initial fit period supplies a covariance estimate for the copula channel;
+no future window contributes to a score or its reference set.
+
+For a non-overlapping window of width $W$, three channels are computed: a local
+aggregate based on the largest normalized stream sum, a Gaussian-copula
+dependence surprise based on the residual vector, and the worst AR(1)
+innovation. Each channel score is converted to a rank-$p$ against the trailing
+window history. With channel $p$-values $p_1,\ldots,p_K$, the combined score is
+\[
+ S=-2\sum_{k=1}^{K}\log p_k,
+ \qquad p_t=\frac{1+\#\{S_s\ge S_t:s<t\}}{n_{t-1}+1}.
+\]
+The finite-sample rank formula is retained exactly; no decimal rounding is
+used in selection.
+
+The primary selection attempts BH at $q=0.05$. If conformal granularity
+selects no windows, TRACE-C records a fallback record rule, in which a window
+must beat every strictly prior combined score. A hard two-alert daily budget
+then limits operator attention. Reports include the rule that actually ran and
+the exchangeable-null reference count $\sum_s1/(n_s+1)$; this count is a
+reference diagnostic, not a coverage theorem for seasonal telemetry.

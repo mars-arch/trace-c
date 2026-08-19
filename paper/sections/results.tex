@@ -1,0 +1,24 @@
+\section{Results}
+
+The committed evidence contains 2,208 scored windows in 2019 and 4,392 in
+2020. In 2019, the empirical rank checks are 120/110 at $p\leq .05$, 51/44 at
+$p\leq .02$, and 23/22 at $p\leq .01$ (observed/reference). On the blind
+2020 pre-COVID segment the corresponding checks are 50/45 and 3/9 at .05 and
+.01, respectively. These are descriptive diagnostics for a drifting,
+autocorrelated series, not formal null certification.
+
+Storm Atiyah is rank 1 of 2,208 in 2019 and is alerted. The 9 August 2019 GB
+frequency event is in the top approximately 6.5 percent but is not separable at
+30-minute aggregation. On 2020, Storm Ciara is rank 44, the lockdown
+transition's best window is rank 45, and Storm Dennis is rank 137. The highest
+ranked 2020 windows later receive the external interpretations Storm Ellen and
+Storm Alex; those labels were not supplied to the detector.
+
+The post-hoc baselines make the trade-off visible. Convolutional autoencoder
+and PCA reconstruction rank the short blackout first, Isolation Forest ranks
+the lockdown interval first, and TRACE-C ranks Atiyah first while retaining the
+most stable-looking rank counts in the supplied comparison. The baseline table
+must be regenerated from the JSON reports rather than hand edited.
+
+\input{paper/generated/results-table}
+\input{paper/generated/baseline-table}
