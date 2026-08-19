@@ -16,6 +16,7 @@ describe("paper evidence", () => {
       ["GB-BLACKOUT-2019-08-09", 143],
       ["STORM-ATIYAH-2019-12-08", 1],
     ]);
+    expect(evidence.trace2019.events.map((event) => event.opportunityWindows)).toEqual([5, 12]);
     expect(evidence.trace2020.events.map((event) => [event.id, event.rank])).toEqual([
       ["STORM-CIARA-2020-02-09", 44],
       ["STORM-DENNIS-2020-02-15", 137],

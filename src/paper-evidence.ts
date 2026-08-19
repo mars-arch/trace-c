@@ -30,6 +30,7 @@ type RawRealReport = {
   known_events: RawKnownEvent[];
   alerts_total: number;
   expected_null_alerts: number;
+  timeline: { known?: string | null }[];
 };
 
 type RawHoldoutReport = {
@@ -170,6 +171,8 @@ export function loadPaperEvidence(root: string): PaperEvidence {
 
   const countOpportunity = (id: string) =>
     holdout.timeline.filter((window) => window.known === id).length;
+  const count2019Opportunity = (id: string) =>
+    real.timeline.filter((window) => window.known === id).length;
   const topWindows = holdout.top_ranked.map((window, index): PaperTopWindow => ({
     rank: index + 1,
     date: window.date,
@@ -188,7 +191,7 @@ export function loadPaperEvidence(root: string): PaperEvidence {
     trace2019: {
       calibration: real.calibration_check,
       events: real.known_events.map((event) =>
-        eventFromRaw(event, event.total_test_windows ?? 0),
+        eventFromRaw(event, count2019Opportunity(event.id)),
       ),
       alerts: real.alerts_total,
       expectedNullAlerts: real.expected_null_alerts,
