@@ -28,5 +28,6 @@ with NESO licence`) and the original frozen evidence lineage
 `0eafb4851bd53dd88ee5cc8ee253bd1cc536360b`. Public code:
 `https://github.com/mars-arch/trace-c`. Evidence DOI `10.57967/hf/10063`
 (`https://huggingface.co/datasets/mars2titan/trace-c-neso-benchmark`).
-arXiv id is still pending endorsement. Data are used under the NESO Open Data
+Preprint DOI `10.5281/zenodo.22012123`. arXiv id is still pending
+endorsement. Data are used under the NESO Open Data
 Licence with the exact attribution `Supported by National Energy SO Open Data`.

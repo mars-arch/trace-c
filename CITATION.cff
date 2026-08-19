@@ -26,5 +26,20 @@ url: "https://github.com/mars-arch/trace-c"
 repository-code: "https://github.com/mars-arch/trace-c"
 identifiers:
   - type: doi
+    value: 10.5281/zenodo.22012123
+    description: Zenodo preprint of the TRACE-C manuscript
+  - type: doi
     value: 10.57967/hf/10063
     description: Hugging Face dataset DOI for the NESO evidence package
+preferred-citation:
+  type: article
+  authors:
+    - family-names: Faucher
+      given-names: Matthew
+      orcid: https://orcid.org/0009-0005-5238-731X
+  title: "TRACE-C: Rank-Calibrated Relational Anomaly Detection for Multi-Stream Operational Telemetry"
+  year: 2026
+  version: 0.1.0
+  publisher: Zenodo
+  doi: 10.5281/zenodo.22012123
+  url: https://doi.org/10.5281/zenodo.22012123

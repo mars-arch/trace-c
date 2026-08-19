@@ -62,7 +62,8 @@ accept that dev-machine paths are visible; they are paths, not secrets).
 
 ## 4. After publishing
 
-- GitHub URL and evidence DOI are in `paper/main.tex`, README, and
+- Preprint DOI (live): `10.5281/zenodo.22012123`. Evidence DOI:
+  `10.57967/hf/10063`. Both are in `paper/main.tex`, README, and
   `CITATION.cff`. After arXiv lists, add the arXiv id, rebuild, re-run
   `make -C paper check`, and upload the new tarball to submit/7967407.
 - Rebuild the arXiv bundle before upload: `make -C paper arxiv`.
