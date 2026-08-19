@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "fs";
 import { join } from "path";
 import {
   loadPaperEvidence,
@@ -60,5 +61,16 @@ describe("paper evidence", () => {
     expect(baselines).toContain("2020-04-05");
     expect(baselines).toContain("2020-03-28");
     expect(renderBaselineTable(evidence)).toBe(baselines);
+  });
+
+  test("uses bundle-local LaTeX paths for arXiv portability", () => {
+    const main = readFileSync(join(root, "paper/main.tex"), "utf8");
+    const results = readFileSync(join(root, "paper/sections/results.tex"), "utf8");
+
+    expect(main).not.toContain("\\input{paper/");
+    expect(main).not.toContain("\\bibliography{paper/");
+    expect(results).not.toContain("\\input{paper/");
+    expect(main).toContain("\\input{sections/abstract}");
+    expect(results).toContain("\\input{generated/results-table}");
   });
 });

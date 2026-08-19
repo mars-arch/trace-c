@@ -10,7 +10,7 @@ From the repository root:
 
 ```bash
 bun run scripts/generate-paper-tables.ts
-latexmk -pdf -interaction=nonstopmode -halt-on-error paper/main.tex
+latexmk -cd -pdf -interaction=nonstopmode -halt-on-error paper/main.tex
 ```
 
 The bibliography uses BibTeX (`natbib`/`plainnat`); `biber` is not required.
