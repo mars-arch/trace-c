@@ -6,7 +6,7 @@
     "schema_version": 2,
     "seed": 42,
     "series_sha256": "fff248728426e6fc3861b1ba6d7cd50904a9b52a01ffa04504434356e5b3ab95",
-    "trainer_sha256": "54fb2d2289abe9714b2642f70d56a9847d7d03b43a87e6b9e8f2b9691d6e7a4f",
+    "trainer_sha256": "92a7f4699602158e10067683fde5ae96de540bd13739f8357ab113e8f62971e3",
     "versions": {
       "machine": "arm64",
       "numpy": "2.2.6",
@@ -19,8 +19,8 @@
   },
   "artifact_hashes": {
     "evaluator_sha256": "375720641e4bd30a4f036f8bcff29343fdaa912222bbb57ffd8ac46e171f4c6d",
-    "baseline_scores_sha256": "368b99ff754ea900af197474c01bad1b767fad1d5a79d2ac0bce9df591dbf728",
-    "ae_training_history_sha256": "f8806986b81926f21b20f1539f85c0e65192db54b20da67624ffd2086c094410",
+    "baseline_scores_sha256": "061add1968d4eb04e0ad2453f06243e438c0c33af2ae6e3899a09e14a385f583",
+    "ae_training_history_sha256": "42da7b1c5cd0461da36feac4ccd8cdd2a907eecc64e89a2b4624341a28d0940c",
     "trace_c_real_report_sha256": "d045dbdc277a3ddc3971da6e797cc656313514c881ced3c229a8aa2479002578",
     "trace_c_holdout_report_sha256": "1e56c6fda92df09d460109d9598e6fea78fc10b6665b3d9f2f78adb8391dd25b"
   },
