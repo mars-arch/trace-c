@@ -56,14 +56,13 @@ accept that dev-machine paths are visible; they are paths, not secrets).
   Licence; attribution "Supported by National Energy SO Open Data".
 - Baseline model (not TRACE-C): https://huggingface.co/mars2titan/trace-c-conv-ae-baseline
   (conv-AE tfevents → Training metrics tab).
-- Request a **DOI** on the dataset repo (Settings → DOI). That fills the
-  paper's pending archival identifier.
+- Dataset DOI (live): `10.57967/hf/10063`
+  (`https://doi.org/10.57967/hf/10063`). Do not mint a second DOI on the
+  conv-AE baseline model.
 
 ## 4. After publishing
 
-- Fill the availability statement in `paper/main.tex` (repo URL, DOI, arXiv
-  id), rebuild, re-run `make -C paper check`.
-- Fill the arXiv link placeholder in the README's **Paper** section, and add
-  the DOI + `repository-code` URL to `CITATION.cff`.
-- Order: GitHub push → HF dataset + DOI → arXiv (so the availability
-  statement is complete in the submitted PDF).
+- GitHub URL and evidence DOI are in `paper/main.tex`, README, and
+  `CITATION.cff`. After arXiv lists, add the arXiv id, rebuild, re-run
+  `make -C paper check`, and upload the new tarball to submit/7967407.
+- Rebuild the arXiv bundle before upload: `make -C paper arxiv`.

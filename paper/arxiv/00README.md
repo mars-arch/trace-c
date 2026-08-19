@@ -3,5 +3,6 @@
 The arXiv submission bundle will contain the compiled `main.tex` source,
 `references.bib`, all files under `sections/`, generated tables under
 `generated/`, and any figures placed under `figures/`. Before submission, add
-the public archive URL and DOI to the availability statement and verify that
-the bundle compiles from a clean checkout.
+the public GitHub URL and evidence DOI (`10.57967/hf/10063`) to the
+availability statement. Verify that the bundle compiles from a clean checkout.
+The arXiv identifier is filled after acceptance.

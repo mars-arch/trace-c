@@ -40,9 +40,10 @@ make -C paper pdf      # regenerate tables/figures + latexmk → paper/main.pdf
 ```
 
 Build targets and the arXiv bundle are documented in
-[`paper/README.md`](paper/README.md). arXiv link: *pending submission.* To cite
-the code and evidence package, see [`CITATION.cff`](CITATION.cff) — GitHub's
-"Cite this repository" button renders BibTeX from it.
+[`paper/README.md`](paper/README.md). arXiv link: *pending endorsement.*
+Evidence DOI: [10.57967/hf/10063](https://doi.org/10.57967/hf/10063)
+([dataset](https://huggingface.co/datasets/mars2titan/trace-c-neso-benchmark)).
+To cite the code and evidence package, see [`CITATION.cff`](CITATION.cff).
 
 ## Repository map
 

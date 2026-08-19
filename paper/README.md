@@ -25,6 +25,8 @@ hand-edited (`make check` enforces this). Figures are plain TikZ (no
 
 This scaffold reflects evidence commit `88aa648` (`fix: align data fetcher
 with NESO licence`) and the original frozen evidence lineage
-`0eafb4851bd53dd88ee5cc8ee253bd1cc536360b`. A public archive URL and DOI are
-still required before submission. Data are used under the NESO Open Data
+`0eafb4851bd53dd88ee5cc8ee253bd1cc536360b`. Public code:
+`https://github.com/mars-arch/trace-c`. Evidence DOI `10.57967/hf/10063`
+(`https://huggingface.co/datasets/mars2titan/trace-c-neso-benchmark`).
+arXiv id is still pending endorsement. Data are used under the NESO Open Data
 Licence with the exact attribution `Supported by National Energy SO Open Data`.
